@@ -4,6 +4,7 @@ export interface UserSchemaTypes extends Document {
   username: string;
   email: string;
   password: string;
+  githubId?: string;
   role: "user" | "admin";
   isVerified: boolean;
   bio: string;

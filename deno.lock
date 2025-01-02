@@ -13,6 +13,7 @@
     "npm:@types/node@^22.10.2": "22.10.2",
     "npm:@types/nodemailer@^6.4.17": "6.4.17",
     "npm:@types/passport-github2@^1.2.9": "1.2.9",
+    "npm:@types/passport-local@^1.0.38": "1.0.38",
     "npm:@types/passport@^1.0.17": "1.0.17",
     "npm:@types/uuid@10": "10.0.0",
     "npm:bcrypt@^5.1.1": "5.1.1",
@@ -29,6 +30,7 @@
     "npm:nodemailer@^6.9.16": "6.9.16",
     "npm:nodemon@^3.1.9": "3.1.9",
     "npm:passport-github2@~0.1.12": "0.1.12",
+    "npm:passport-local@1": "1.0.0",
     "npm:passport@0.7": "0.7.0",
     "npm:ts-node@^10.9.2": "10.9.2_@types+node@22.5.4_typescript@5.7.2",
     "npm:types@~0.1.1": "0.1.1",
@@ -232,11 +234,26 @@
         "@types/passport-oauth2"
       ]
     },
+    "@types/passport-local@1.0.38": {
+      "integrity": "sha512-nsrW4A963lYE7lNTv9cr5WmiUD1ibYJvWrpE13oxApFsRt77b0RdtZvKbCdNIY4v/QZ6TRQWaDDEwV1kCTmcXg==",
+      "dependencies": [
+        "@types/express",
+        "@types/passport",
+        "@types/passport-strategy"
+      ]
+    },
     "@types/passport-oauth2@1.4.17": {
       "integrity": "sha512-ODiAHvso6JcWJ6ZkHHroVp05EHGhqQN533PtFNBkg8Fy5mERDqsr030AX81M0D69ZcaMvhF92SRckEk2B0HYYg==",
       "dependencies": [
         "@types/express",
         "@types/oauth",
+        "@types/passport"
+      ]
+    },
+    "@types/passport-strategy@0.2.38": {
+      "integrity": "sha512-GC6eMqqojOooq993Tmnmp7AUTbbQSgilyvpCYQjT+H6JfG/g6RGc7nXEniZlp0zyKJ0WUdOiZWLBZft9Yug1uA==",
+      "dependencies": [
+        "@types/express",
         "@types/passport"
       ]
     },
@@ -1108,6 +1125,12 @@
         "passport-oauth2"
       ]
     },
+    "passport-local@1.0.0": {
+      "integrity": "sha512-9wCE6qKznvf9mQYYbgJ3sVOHmCWoUNMVFoZzNoznmISbhnNNPhN9xfY3sLmScHMetEJeoY7CXwfhCe7argfQow==",
+      "dependencies": [
+        "passport-strategy"
+      ]
+    },
     "passport-oauth2@1.8.0": {
       "integrity": "sha512-cjsQbOrXIDE4P8nNb3FQRCCmJJ/utnFKEz2NX209f7KOHPoX18gF7gBzBbLLsj2/je4KrgiwLLGjf0lm9rtTBA==",
       "dependencies": [
@@ -1559,6 +1582,7 @@
         "npm:@types/node@^22.10.2",
         "npm:@types/nodemailer@^6.4.17",
         "npm:@types/passport-github2@^1.2.9",
+        "npm:@types/passport-local@^1.0.38",
         "npm:@types/passport@^1.0.17",
         "npm:@types/uuid@10",
         "npm:bcrypt@^5.1.1",
@@ -1575,6 +1599,7 @@
         "npm:nodemailer@^6.9.16",
         "npm:nodemon@^3.1.9",
         "npm:passport-github2@~0.1.12",
+        "npm:passport-local@1",
         "npm:passport@0.7",
         "npm:ts-node@^10.9.2",
         "npm:types@~0.1.1",

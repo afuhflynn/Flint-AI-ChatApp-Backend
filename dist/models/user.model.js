@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-// Define the user schema
+import { defaultAvatarUrl } from "../constants/constants.js";
 const UserSchema = new mongoose.Schema({
     username: {
         type: String,
@@ -21,8 +21,8 @@ const UserSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: true,
         unique: true,
+        sparse: true, // Allows email to be optional for GitHub authentication
         trim: true,
         match: [
             /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/,
@@ -31,9 +31,13 @@ const UserSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
         minlength: 8,
         select: false, // Exclude password from query results by default
+    },
+    githubId: {
+        type: String,
+        unique: true,
+        sparse: true, // Allows GitHub ID to be optional for Local authentication
     },
     role: {
         type: String,
@@ -49,60 +53,11 @@ const UserSchema = new mongoose.Schema({
         maxlength: 250,
         default: "",
     },
-    resetPasswordToken: {
-        type: String,
-    },
-    resetPasswordTokenExpires: {
-        type: Date,
-    },
-    verificationCode: {
-        type: String,
-    },
-    verificationCodeExpires: {
-        type: Date,
-    },
-    accessToken: {
-        type: String,
-    },
-    accessTokenExpires: {
-        type: Date,
-    },
-    refreshToken: {
-        type: String,
-    },
-    refreshTokenExpires: {
-        type: Date,
-    },
-    chats: [
-        {
-            id: {
-                type: String,
-            },
-            title: {
-                type: String,
-            },
-            conversations: [
-                {
-                    chatsession: {
-                        id: {
-                            type: String,
-                        },
-                        user: {
-                            type: String,
-                        },
-                        bot: {
-                            type: String,
-                        },
-                    },
-                },
-            ],
-        },
-    ],
     preferences: {
         avatarUrl: {
             type: String,
             require: false,
-            default: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
+            default: defaultAvatarUrl,
         },
         theme: {
             type: String,
@@ -117,9 +72,8 @@ const UserSchema = new mongoose.Schema({
 // Pre-save middleware to hash the password before saving
 UserSchema.pre("save", function (next) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!this.isModified("password"))
+        if (!this.isModified("password") || !this.password)
             return next();
-        // Generate salt
         const salt = yield bcrypt.genSalt(10);
         this.password = yield bcrypt.hash(this.password, salt);
         next();
@@ -128,6 +82,8 @@ UserSchema.pre("save", function (next) {
 // Method to compare passwords
 UserSchema.methods.comparePassword = function (candidatePassword) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (!this.password)
+            return false; // For GitHub users without passwords
         return yield bcrypt.compare(candidatePassword, this.password);
     });
 };
