@@ -9,17 +9,16 @@ import geminiRouter from "./routes/gemini.route.js";
 import connectDB from "./config/db/connectDB.js";
 import mongoose from "mongoose";
 import path from "node:path";
-// import githubAuth from "./config/passwordJs.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// Initialize envs vars
+// Initialize env vars
 config();
 // Connect to MongoDB
 connectDB();
 // Create a new express application instance
 const app = express();
 const port = process.env.PORT || 3000;
-//Express session setup
+// Express session setup
 app.use(session({
     secret: process.env.EXPRESS_SESSION_SECRET,
     saveUninitialized: false,
@@ -27,8 +26,8 @@ app.use(session({
     cookie: {
         httpOnly: true,
         sameSite: "strict",
-        secure: process.env.APP_STATUS === "production" ? true : false,
-        maxAge: Date.now() + 60 * 60 * 1000,
+        secure: process.env.APP_STATUS === "production",
+        maxAge: Date.now() + 60 * 60 * 1000, // 1 hour
     },
 }));
 // Express middleware setup
@@ -39,14 +38,26 @@ app.use(express.urlencoded({ extended: true }));
 app.set("trust proxy", 1);
 app.use(morgan("dev"));
 app.use("/assist", geminiRouter);
-const handleGetRquests = (req, res) => {
+// Middleware to initialize session properties
+const sessionInitializer = (req, _, next) => {
+    if (!req.session.visited) {
+        req.session.visited = false;
+    }
+    next();
+};
+// Apply session initializer middleware
+app.use(sessionInitializer);
+// Route handlers
+app.get("/", (req, res) => {
+    req.session.visited = true;
     console.log(req.session);
     console.log(req.sessionID);
-    req.session.visited = true;
+    req.sessionStore.get(req.sessionID, (error, sessionData) => {
+        if (error)
+            console.log(error);
+        console.log(sessionData);
+    });
     res.send("Hello, world!");
-};
-app.get("/", (req, res) => {
-    handleGetRquests(req, res);
 });
 // Target wrong routes
 app.get("*", (req, res) => {
@@ -59,6 +70,7 @@ app.get("*", (req, res) => {
             .status(404)
             .sendFile(path.join(__dirname, "views", "404page.html"));
 });
+// Start server
 mongoose.connection.once("open", () => {
     app.listen(port, () => {
         console.log(`Server is running on http://localhost:${port}`);
