@@ -1,4 +1,5 @@
 import { Document } from "mongoose";
+import express from "express";
 // Interface for User Document
 export interface UserSchemaTypes extends Document {
   username: string;
@@ -32,4 +33,47 @@ export interface UserSchemaTypes extends Document {
     avatarUrl: string;
     theme: "light" | "dark";
   };
+}
+
+export interface IStrategyOptions {
+  usernameField?: string | undefined;
+  passwordField?: string | undefined;
+  session?: boolean | undefined;
+  passReqToCallback?: false | undefined;
+}
+
+export interface IStrategyOptionsWithRequest {
+  usernameField?: string | undefined;
+  passwordField?: string | undefined;
+  session?: boolean | undefined;
+  passReqToCallback: true;
+}
+
+export interface IVerifyOptions {
+  message: string;
+}
+
+export interface VerifyFunctionWithRequest {
+  (
+    req: express.Request,
+    username: string,
+    password: string,
+    done: (
+      error: any,
+      user?: Express.User | false,
+      options?: IVerifyOptions
+    ) => void
+  ): void;
+}
+
+export interface VerifyFunction {
+  (
+    username: string,
+    password: string,
+    done: (
+      error: any,
+      user?: Express.User | false,
+      options?: IVerifyOptions
+    ) => void
+  ): void;
 }

@@ -11,21 +11,22 @@ import jwt from "jsonwebtoken";
 import { config } from "dotenv";
 // Load env vars
 config();
-const generateTokens = (res, email, username, id, userRole) => __awaiter(void 0, void 0, void 0, function* () {
+const generateTokens = (email, username, id, userRole) => __awaiter(void 0, void 0, void 0, function* () {
     const privateAccessKey = process.env.ACCESS_TOKEN_SECRET;
+    const privateRefreshKey = process.env.REFRESH_TOKEN_SECRET;
     if (!privateAccessKey) {
         throw new Error("ACCESS_TOKEN_SECRET is not defined in the environment variables.");
     }
-    const accessToken = jwt.sign({ email: email, username: username, id: id, userRole: userRole }, privateAccessKey, { algorithm: "HS256", expiresIn: "30d" });
-    const dateNow = Date.now() + 720 * 60 * 60 * 1000;
-    const expiresAt = new Date(dateNow);
-    res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.APP_STATUS === "production" && true,
-        sameSite: "strict",
-        maxAge: dateNow,
-    });
-    return { accessToken, expiresAt };
+    const accessToken = yield jwt.sign({ email: email, username: username, id: id, userRole: userRole }, privateAccessKey, { algorithm: "HS256", expiresIn: "1h" });
+    const refreshToken = yield jwt.sign({ email: email, username: username, id: id, userRole: userRole }, privateRefreshKey, { algorithm: "HS256", expiresIn: "30d" });
+    const accessTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const refreshTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    return {
+        accessToken,
+        accessTokenExpiresAt,
+        refreshToken,
+        refreshTokenExpiresAt,
+    };
 });
 export default generateTokens;
 //# sourceMappingURL=generateTokens.js.map

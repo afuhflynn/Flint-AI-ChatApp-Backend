@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { accountLogoutEmailTemplate, accountNotificationTemplate, passwordResetEmailTemplate, verificationEmailTemplate, welcomeEmailTemplate, accountDeleteEmailTemplate, } from "../../emailsTemplateSetup/emailTemplates.js";
+import crypto from "crypto";
 import { sendEmail } from "../../config/emailSenderSetup.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,9 +23,11 @@ const attachments = [
 ];
 const sendVerificationEmail = (code, email, username, headers) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const token = yield crypto.randomBytes(20).toString("hex");
         const newEmail = verificationEmailTemplate
             .replace("[user_name]", username)
-            .replace("[verification_code]", code);
+            .replace("[verification_code]", code)
+            .replace("href=[verification_link]", `href=${process.env.CLIENT_URL}/confirm-email/${token}`);
         yield sendEmail(email, "Verification Email", newEmail, headers, attachments);
     }
     catch (error) {
@@ -46,7 +49,9 @@ const sendNotificationEmail = (activity, email, username, time, author, headers)
 });
 const sendWelcomeEmail = (email, username, headers) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const newEmail = welcomeEmailTemplate.replace("[user_name]", username);
+        const newEmail = welcomeEmailTemplate
+            .replace("[user_name]", username)
+            .replace("href=[homepage_link]", `href=${process.env.CLIENT_URL}`);
         //Send email content
         yield sendEmail(email, "Welcome Email", newEmail, headers, attachments);
     }

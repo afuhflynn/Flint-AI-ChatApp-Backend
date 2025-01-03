@@ -85,6 +85,16 @@ app.use(passport.session());
 // Route handlers
 app.use("/assist", geminiRouter);
 
+// Routes to create user account for github and locally
+app.get("/auth/github", passport.authenticate("github"));
+app.get(
+  "/auth/github/callback",
+  passport.authenticate("github", {
+    successRedirect: "http://localhost:5173", // Redirect to frontend react home page
+    failureRedirect: "http://localhost:5173/log-in", // Redirect to frontend react login page
+  })
+);
+
 app.get("/", (req: Request, res: Response) => {
   req.session.visited = true;
   console.log(req.session);

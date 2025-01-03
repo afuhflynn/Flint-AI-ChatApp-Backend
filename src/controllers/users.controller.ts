@@ -1,86 +1,81 @@
 import { Request, Response } from "express";
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
-import crypto from "crypto";
 import { CustomRequest } from "../middlewares/verifyTokens.js";
-// Validate required fields
-const validateRequiredFields = (fields: string[], body: any): string | null => {
-  for (const field of fields) {
-    if (!body[field]) {
-      return `Field ${field} is required.`;
-    }
-  }
-  return null;
-};
+import {
+  sendVerificationEmail,
+  sendWelcomeEmail,
+} from "../utils/Emails/send.emails.js";
+import generateVerificationCode from "../utils/generateVerificationCode.js";
+import { UserSchemaTypes } from "../TYPES.js";
 
-// Middleware to check required fields for registration
-export const validateRegisterFields = (
-  req: Request,
-  res: Response,
-  next: Function
-) => {
-  const requiredFields = ["username", "password", "email"];
-  const error = validateRequiredFields(requiredFields, req.body);
-  if (error) {
-    return res.status(400).json({ error });
+declare module "express-session" {
+  interface SessionData {
+    visited?: boolean;
+    userId: "";
+    user: UserSchemaTypes | null;
   }
-  next();
-};
-
-// Middleware to check required fields for login
-export const validateLoginFields = (
-  req: Request,
-  res: Response,
-  next: Function
-) => {
-  const requiredFields = ["username", "password"];
-  const error = validateRequiredFields(requiredFields, req.body);
-  if (error) {
-    return res.status(400).json({ error });
-  }
-  next();
-};
-
-const secretKey = "your_secret_key"; // Replace with your actual secret key
+}
 
 // Register user
 export const registerUser = async (req: Request, res: Response) => {
+  const { username, password, email } = req.body;
+  // Check if all required fields are provided
+  if (!username || !password || !email)
+    return res
+      .status(400)
+      .json({ success: false, message: "All fields are required" });
   try {
-    const { username, password, email } = req.body;
-    const newUser = new User({ username, password: password, email });
+    // Check if user already exists
+    const user = await User.findOne({ username, email });
+    if (user)
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists" });
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationCode: string = generateVerificationCode();
+    // Verification expires at date
+    const verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      email,
+      verificationCode,
+      verificationCodeExpires,
+    });
     await newUser.save();
 
-    const verificationCode = generateVerificationCode();
-    await sendVerificationEmail(email, verificationCode);
+    await sendVerificationEmail(verificationCode, email, username, {
+      "X-Category": "Verification Email",
+    });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "User registered successfully. Verification email sent.",
     });
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
 // Login a user
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (
+  req: Request & CustomRequest,
+  res: Response
+) => {
   try {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: "Invalid password" });
-    }
-    const token = jwt.sign({ userId: user._id }, secretKey, {
-      expiresIn: "1h",
-    });
-    res.status(200).json({ token });
+    // Send welcome email since there is passport authentication
+    if (req.session.user?.email && req.session.user?.username)
+      await sendWelcomeEmail(
+        req.session.user.email,
+        req.session.user.username,
+        {
+          "X-Category": "Welcome Email",
+        }
+      );
+    return res.status(200).json({ message: "Logged in successfully" });
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -140,57 +135,4 @@ export const deleteUserAccount = async (
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
-};
-// Generate verification code
-const generateVerificationCode = () => {
-  return crypto.randomBytes(3).toString("hex").toUpperCase();
-};
-
-// Send verification email
-const sendVerificationEmail = async (email: string, code: string) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "your_email@gmail.com",
-      pass: "your_email_password",
-    },
-  });
-
-  const mailOptions = {
-    from: "your_email@gmail.com",
-    to: email,
-    subject: "Email Verification",
-    text: `Your verification code is: ${code}`,
-  };
-
-  await transporter.sendMail(mailOptions);
-};
-
-// Generate access token
-export const generateAccessToken = (userId: string) => {
-  return jwt.sign({ userId }, secretKey, { expiresIn: "1h" });
-};
-
-// Send notification email
-export const sendNotificationEmail = async (
-  email: string,
-  subject: string,
-  message: string
-) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "your_email@gmail.com",
-      pass: "your_email_password",
-    },
-  });
-
-  const mailOptions = {
-    from: "your_email@gmail.com",
-    to: email,
-    subject,
-    text: message,
-  };
-
-  await transporter.sendMail(mailOptions);
 };

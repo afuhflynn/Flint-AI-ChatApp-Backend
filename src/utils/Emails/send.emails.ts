@@ -6,6 +6,7 @@ import {
   welcomeEmailTemplate,
   accountDeleteEmailTemplate,
 } from "../../emailsTemplateSetup/emailTemplates.js";
+import crypto from "crypto";
 import { sendEmail } from "../../config/emailSenderSetup.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,9 +30,14 @@ const sendVerificationEmail = async (
   }
 ) => {
   try {
+    const token = await crypto.randomBytes(20).toString("hex");
     const newEmail: string = verificationEmailTemplate
       .replace("[user_name]", username)
-      .replace("[verification_code]", code);
+      .replace("[verification_code]", code)
+      .replace(
+        "href=[verification_link]",
+        `href=${process.env.CLIENT_URL}/confirm-email/${token}`
+      );
     await sendEmail(
       email,
       "Verification Email",
@@ -79,10 +85,9 @@ const sendWelcomeEmail = async (
   }
 ) => {
   try {
-    const newEmail: string = welcomeEmailTemplate.replace(
-      "[user_name]",
-      username
-    );
+    const newEmail: string = welcomeEmailTemplate
+      .replace("[user_name]", username)
+      .replace("href=[homepage_link]", `href=${process.env.CLIENT_URL}`);
     //Send email content
     await sendEmail(email, "Welcome Email", newEmail, headers, attachments);
   } catch (error: any | { message: string }) {

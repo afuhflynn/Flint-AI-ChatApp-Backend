@@ -13,25 +13,32 @@ import { Strategy as GitHubStrategy } from "passport-github2";
 import { Strategy as LocalStrategy } from "passport-local";
 import { config } from "dotenv";
 import User from "../models/user.model.js";
+import generateTokens from "../utils/generateTokens.js";
 config();
 // Verify callback for Local Strategy
 const localVerifyCallback = (username, password, done) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!username || !password)
-            return done(null, false);
+            return done(null, false, { message: "All fields are required" });
         const foundUser = yield User.findOne({
             $or: [{ username: username }, { email: username }],
         }).select("+password");
         if (!foundUser)
-            return done(null, false);
+            return done(null, false, { message: "Invalid credentials" });
         const isMatch = yield foundUser.comparePassword(password);
         if (!isMatch)
-            return done(null, false);
+            return done(null, false, { message: "Invalid credentials" });
         foundUser.isVerified = true;
-        return done(null, foundUser);
+        const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, } = yield generateTokens(foundUser.email, username, foundUser._id, foundUser.role);
+        foundUser.accessToken = accessToken;
+        foundUser.refreshToken = refreshToken;
+        foundUser.accessTokenExpires = accessTokenExpiresAt;
+        foundUser.refreshTokenExpires = refreshTokenExpiresAt;
+        yield foundUser.save();
+        return done(null, foundUser, { message: "Logged in successfully" });
     }
     catch (error) {
-        return done(error, false);
+        return done(error, false, { message: "An error occurred" });
     }
 });
 // Verify callback for GitHub Strategy
@@ -46,10 +53,14 @@ const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awa
             githubId: profile.id,
             username: profile.username,
             email: (_a = profile.emails[0]) === null || _a === void 0 ? void 0 : _a.value,
+            preferences: {
+                avatarUrl: profile.avatar_url,
+                theme: "light",
+            },
             accessToken,
             refreshToken,
-            accesstokenExpiresAt: Date.now() + 60 * 60 * 1000, // 1 hour
-            refreshTokenExpiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
+            accesstokenExpires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+            refreshTokenExpires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
             isVerified: true,
         });
         yield newUser.save();
@@ -60,7 +71,11 @@ const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awa
     }
 });
 // Initialize Local Strategy
-passport.use(new LocalStrategy({ usernameField: "username", passwordField: "password" }, localVerifyCallback));
+passport.use(new LocalStrategy({
+    usernameField: "username",
+    passwordField: "password",
+    passReqToCallback: false,
+}, localVerifyCallback));
 // Initialize GitHub Strategy
 passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
