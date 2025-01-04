@@ -12,6 +12,9 @@ import mongoose from "mongoose";
 import path from "node:path";
 import { UserSchemaTypes } from "./TYPES.js";
 import userRouter from "./routes/users.router.js";
+import "./config/passportJs.js";
+import { updateUserSession } from "./middlewares/updateUserSession.js";
+import { githubLogin } from "./controllers/users.controller.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -79,29 +82,34 @@ const sessionInitializer = (req: Request, _: Response, next: NextFunction) => {
 app.use(sessionInitializer);
 
 // Passport js init
-import "./config/passportJs.js";
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Routes to create user account for github and locally
+app.get(
+  "/api/auth/users/github",
+  passport.authenticate("github", {
+    scope: ["user:email"],
+    successRedirect: `${process.env.CLIENT_URL}`, // Redirect to frontend react home page
+    failureRedirect: `${process.env.CLIENT_URL}/log-in`, // Redirect to frontend react login page
+  })
+);
+
+app.get(
+  "/auth/github/callback",
+  passport.authenticate("github", {
+    failureRedirect: `${process.env.CLIENT_URL}/log-in`,
+  }),
+  updateUserSession,
+  (req: Request, res: Response) => {
+    githubLogin(req, res);
+  }
+);
 // Route handlers
 app.use("/assist", geminiRouter);
 app.use("/api/auth/users", userRouter);
 
-// Routes to create user account for github and locally
-app.get("/api/auth/github", passport.authenticate("github"));
-app.get(
-  "/auth/github/callback",
-  passport.authenticate("github", {
-    successRedirect: "http://localhost:5173", // Redirect to frontend react home page
-    failureRedirect: "http://localhost:5173/log-in", // Redirect to frontend react login page
-  })
-);
-
 app.get("/", (req: Request, res: Response) => {
-  req.session.visited = true;
-  console.log(req.session);
-  console.log(req.sessionID);
-  console.log(req.isAuthenticated());
   req.sessionStore.get(req.sessionID, (error, sessionData) => {
     if (error) console.log(error);
     console.log(sessionData);

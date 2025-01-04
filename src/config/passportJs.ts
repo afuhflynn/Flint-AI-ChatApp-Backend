@@ -1,4 +1,3 @@
-import express from "express";
 // Import required modules
 import passport, { DoneCallback } from "passport";
 import { Strategy as GitHubStrategy } from "passport-github2";
@@ -7,17 +6,9 @@ import { config } from "dotenv";
 // import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
 import generateTokens from "../utils/generateTokens.js";
-import { UserSchemaTypes, VerifyFunction } from "../TYPES.js";
+import { VerifyFunction } from "../TYPES.js";
 
 config();
-
-declare module "express-session" {
-  interface SessionData {
-    visited?: boolean;
-    userId: "";
-    user: UserSchemaTypes | null;
-  }
-}
 
 // Verify callback for Local Strategy
 const localVerifyCallback: VerifyFunction = async (
@@ -56,7 +47,6 @@ const localVerifyCallback: VerifyFunction = async (
     foundUser.accessTokenExpires = accessTokenExpiresAt;
     foundUser.refreshTokenExpires = refreshTokenExpiresAt;
     await foundUser.save();
-    express.request.session.user = foundUser;
     return done(null, foundUser, { message: "Logged in successfully" });
   } catch (error) {
     return done(error, false, { message: "An error occurred" });
@@ -72,10 +62,7 @@ const gitHubVerifyCallback = async (
 ): Promise<void> => {
   try {
     const existingUser = await User.findOne({ githubId: profile.id });
-
-    if (existingUser) {
-      return done(null, existingUser);
-    }
+    if (existingUser) return done(null, existingUser);
 
     const newUser = new User({
       githubId: profile.id,
@@ -85,6 +72,7 @@ const gitHubVerifyCallback = async (
         avatarUrl: profile.avatar_url,
         theme: "light",
       },
+      bio: profile.bio,
       accessToken,
       refreshToken,
       accesstokenExpires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
@@ -93,6 +81,7 @@ const gitHubVerifyCallback = async (
     });
 
     await newUser.save();
+    //send welcome email
     return done(null, newUser);
   } catch (error) {
     return done(error, false);

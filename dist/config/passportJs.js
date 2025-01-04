@@ -7,7 +7,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import express from "express";
 // Import required modules
 import passport from "passport";
 import { Strategy as GitHubStrategy } from "passport-github2";
@@ -37,7 +36,6 @@ const localVerifyCallback = (username, password, done) => __awaiter(void 0, void
         foundUser.accessTokenExpires = accessTokenExpiresAt;
         foundUser.refreshTokenExpires = refreshTokenExpiresAt;
         yield foundUser.save();
-        express.request.session.user = foundUser;
         return done(null, foundUser, { message: "Logged in successfully" });
     }
     catch (error) {
@@ -49,9 +47,8 @@ const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awa
     var _a;
     try {
         const existingUser = yield User.findOne({ githubId: profile.id });
-        if (existingUser) {
+        if (existingUser)
             return done(null, existingUser);
-        }
         const newUser = new User({
             githubId: profile.id,
             username: profile.username,
@@ -60,6 +57,7 @@ const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awa
                 avatarUrl: profile.avatar_url,
                 theme: "light",
             },
+            bio: profile.bio,
             accessToken,
             refreshToken,
             accesstokenExpires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
@@ -67,6 +65,7 @@ const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awa
             isVerified: true,
         });
         yield newUser.save();
+        //send welcome email
         return done(null, newUser);
     }
     catch (error) {

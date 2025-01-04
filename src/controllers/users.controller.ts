@@ -85,14 +85,23 @@ export const loginUser = async (req: Request, res: Response) => {
 };
 
 // Logout user
-export const logoutUser = async (
-  req: Request & CustomRequest,
-  res: Response
-) => {
+export const logoutUser = async (req: Request, res: Response) => {
   try {
-    req.session.destroy((error) => {
+    req.session.destroy(async (error) => {
       if (error) {
         return res.status(500).json({ message: "Internal server error" });
+      }
+      // send account notificaiton email
+      if (req.session.user?.email && req.session.user?.username) {
+        console.log(req.session.user);
+        await sendNotificationEmail(
+          "Account Logout",
+          req.session.user.email,
+          req.session.user.username,
+          new Date().toLocaleDateString(),
+          `${(req.session.user.username, req.session.user.email)}`,
+          { "X-Category": "Logout Notification" }
+        );
       }
       return res.status(200).json({ message: "Logged out successfully" });
     });
@@ -374,6 +383,35 @@ export const checkAuthState = async (req: Request, res: Response) => {
         .json({ success: false, message: "User not found" });
     }
     return res.status(200).json({ success: true, user });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Handle github login
+export const githubLogin = async (req: Request, res: Response) => {
+  try {
+    if (req.session.user?.email && req.session.user?.username) {
+      //send notification email
+      await sendNotificationEmail(
+        "Account Login",
+        req.session.user.email,
+        req.session.user.username,
+        new Date().toLocaleDateString(),
+        `${(req.session.user.username, req.session.user.email)}`,
+        { "X-Category": "Login Notification" }
+      );
+      // Send welcome email since there is passport authentication
+      await sendWelcomeEmail(
+        req.session.user.email,
+        req.session.user.username,
+        { "X-Category": "Welcome Email" }
+      );
+    } else {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    //Redirect user permently to frontend home page
+    return res.status(301).redirect(`${process.env.CLIENT_URL}`);
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }

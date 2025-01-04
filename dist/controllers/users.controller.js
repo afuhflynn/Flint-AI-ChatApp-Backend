@@ -70,12 +70,18 @@ export const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
 // Logout user
 export const logoutUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        req.session.destroy((error) => {
+        req.session.destroy((error) => __awaiter(void 0, void 0, void 0, function* () {
+            var _a, _b;
             if (error) {
                 return res.status(500).json({ message: "Internal server error" });
             }
+            // send account notificaiton email
+            if (((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.email) && ((_b = req.session.user) === null || _b === void 0 ? void 0 : _b.username)) {
+                console.log(req.session.user);
+                yield sendNotificationEmail("Account Logout", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Logout Notification" });
+            }
             return res.status(200).json({ message: "Logged out successfully" });
-        });
+        }));
     }
     catch (error) {
         return res.status(500).json({ message: "Internal server error" });
@@ -320,6 +326,26 @@ export const checkAuthState = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 .json({ success: false, message: "User not found" });
         }
         return res.status(200).json({ success: true, user });
+    }
+    catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+});
+// Handle github login
+export const githubLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        if (((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.email) && ((_b = req.session.user) === null || _b === void 0 ? void 0 : _b.username)) {
+            //send notification email
+            yield sendNotificationEmail("Account Login", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Login Notification" });
+            // Send welcome email since there is passport authentication
+            yield sendWelcomeEmail(req.session.user.email, req.session.user.username, { "X-Category": "Welcome Email" });
+        }
+        else {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        //Redirect user permently to frontend home page
+        return res.status(301).redirect(`${process.env.CLIENT_URL}`);
     }
     catch (error) {
         return res.status(500).json({ message: "Internal server error" });

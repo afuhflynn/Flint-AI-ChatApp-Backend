@@ -8,13 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import express, { Router } from "express";
-import { loginUser, registerUser } from "../controllers/users.controller.js";
+import { loginUser, logoutUser, registerUser, } from "../controllers/users.controller.js";
 import passport from "passport";
 const userRouter = Router();
 // Create a new express application instance
 const app = express();
 // Passport js init
 import "../config/passportJs.js";
+import { updateUserSession } from "../middlewares/updateUserSession.js";
 app.use(passport.initialize());
 app.use(passport.session());
 userRouter.post("/sign-up", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -26,9 +27,18 @@ userRouter.post("/sign-up", (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.post("/sign-in", passport.authenticate("local"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.post("/sign-in", passport.authenticate("local"), updateUserSession, passport.authenticate("local"), updateUserSession, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield loginUser(req, res);
+    }
+    catch (error) {
+        console.error("Error in sign-up route:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}));
+userRouter.post("/log-out", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield logoutUser(req, res);
     }
     catch (error) {
         console.error("Error in sign-up route:", error);
