@@ -451,7 +451,7 @@ const passwordResetEmailTemplate = `<!DOCTYPE html>
 
             <p style="font-size: 14px;">
                 If the button above doesn’t work, you can copy and paste the following link into your browser: <br>
-                <a href=[reset_link] style="color: #1a73e8;">[reset_link]</a>
+                [reset_link]
             </p>
         </div>
 
@@ -609,6 +609,10 @@ const accountDeleteEmailTemplate = `<!DOCTYPE html>
             or
             <a href=[account_deletion_link] class="email-button" style="background-color: #d9534f;">Confirm Account
                 Deletion</a>
+
+            <p>
+            If the buttons above don’t work, you can copy and paste the following link into your browser: <br> Cancel account deletion: [cancel_deletion_link] <br> Confirm account deletion: [account_deletion_link]
+            </p>
 
             <p style="font-size: 14px;">
                 If you want to proceed with the deletion, no further action is required. The process will be completed

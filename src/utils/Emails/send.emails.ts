@@ -16,8 +16,15 @@ const __dirname = path.dirname(__filename);
 
 const attachments = [
   {
-    filename: "syntaxspring_logo", // Inline file
-    path: path.join(__dirname, "..", "..", "assets", "logo", "logo.png"), // Path to inline image
+    filename: "flintai logo", // Inline file
+    path: path.join(
+      __dirname,
+      "..",
+      "..",
+      "assets",
+      "logo",
+      "flintai-logo.png"
+    ), // Path to inline image
     cid: "unique_inline_logo_cid", // Content-ID for inline image (must be unique)
   },
 ];
@@ -65,7 +72,11 @@ const sendNotificationEmail = async (
       .replace("[user_name]", username)
       .replace("[activity_description]", activity)
       .replace("[activity_time]", time)
-      .replace("[activity_author]", author);
+      .replace("[activity_author]", author)
+      .replace(
+        "href=[account_security_link]",
+        `href=${process.env.CLIENT_URL}`
+      );
     await sendEmail(
       email,
       "Notification Email",
@@ -102,10 +113,12 @@ const sendLogoutEmail = async (
   }
 ) => {
   try {
-    const newEmail: string = accountLogoutEmailTemplate.replace(
-      "[user_name]",
-      username
-    );
+    const newEmail: string = accountLogoutEmailTemplate
+      .replace("[user_name]", username)
+      .replace(
+        "href=[account_security_link]",
+        `href=${process.env.CLIENT_URL}`
+      );
     //Send email content
     await sendEmail(email, "Logout Email", newEmail, headers, attachments);
   } catch (error: any | { message: string }) {
@@ -123,7 +136,8 @@ const sendPasswordResetEmail = async (
   try {
     const newEmail: string = passwordResetEmailTemplate
       .replace("[user_name]", username)
-      .replace("[reset_link]", resetUrl);
+      .replace("[reset_link]", resetUrl)
+      .replace("href=[reset_link]", `href=${resetUrl}`);
     //Send email content
     await sendEmail(
       email,
@@ -139,15 +153,18 @@ const sendPasswordResetEmail = async (
 const sendAccountDeleteEmail = async (
   email: string,
   username: string,
+  deleteUrl: string,
   headers: {
     "X-Category": string;
   }
 ) => {
   try {
-    const newEmail: string = accountDeleteEmailTemplate.replace(
-      "[user_name]",
-      username
-    );
+    const newEmail: string = accountDeleteEmailTemplate
+      .replace("[user_name]", username)
+      .replace("href=[cancel_deletion_link]", `href=${process.env.CLIENT_URL}`)
+      .replace("href=[account_deletion_link]", `href=${deleteUrl}`)
+      .replace("[account_deletion_link]", deleteUrl)
+      .replace("[cancel_deletion_link]", process.env.CLIENT_URL!);
     //Send email content
     await sendEmail(
       email,

@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import crypto from "node:crypto";
 const generateResetToken = () => __awaiter(void 0, void 0, void 0, function* () {
     const resetToken = yield crypto.randomBytes(60).toString("hex");
-    const expiresAt = Date.now() + 1 * 60 * 60 * 1000;
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     return { resetToken, expiresAt };
 });
 export default generateResetToken;

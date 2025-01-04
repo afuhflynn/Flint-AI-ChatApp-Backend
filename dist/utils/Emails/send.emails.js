@@ -16,8 +16,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const attachments = [
     {
-        filename: "syntaxspring_logo", // Inline file
-        path: path.join(__dirname, "..", "..", "assets", "logo", "logo.png"), // Path to inline image
+        filename: "flintai logo", // Inline file
+        path: path.join(__dirname, "..", "..", "assets", "logo", "flintai-logo.png"), // Path to inline image
         cid: "unique_inline_logo_cid", // Content-ID for inline image (must be unique)
     },
 ];
@@ -40,7 +40,8 @@ const sendNotificationEmail = (activity, email, username, time, author, headers)
             .replace("[user_name]", username)
             .replace("[activity_description]", activity)
             .replace("[activity_time]", time)
-            .replace("[activity_author]", author);
+            .replace("[activity_author]", author)
+            .replace("href=[account_security_link]", `href=${process.env.CLIENT_URL}`);
         yield sendEmail(email, "Notification Email", newEmail, headers, attachments);
     }
     catch (error) {
@@ -61,7 +62,9 @@ const sendWelcomeEmail = (email, username, headers) => __awaiter(void 0, void 0,
 });
 const sendLogoutEmail = (email, username, headers) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const newEmail = accountLogoutEmailTemplate.replace("[user_name]", username);
+        const newEmail = accountLogoutEmailTemplate
+            .replace("[user_name]", username)
+            .replace("href=[account_security_link]", `href=${process.env.CLIENT_URL}`);
         //Send email content
         yield sendEmail(email, "Logout Email", newEmail, headers, attachments);
     }
@@ -73,7 +76,8 @@ const sendPasswordResetEmail = (email, username, resetUrl, headers) => __awaiter
     try {
         const newEmail = passwordResetEmailTemplate
             .replace("[user_name]", username)
-            .replace("[reset_link]", resetUrl);
+            .replace("[reset_link]", resetUrl)
+            .replace("href=[reset_link]", `href=${resetUrl}`);
         //Send email content
         yield sendEmail(email, "Password Reset Email", newEmail, headers, attachments);
     }
@@ -81,9 +85,14 @@ const sendPasswordResetEmail = (email, username, resetUrl, headers) => __awaiter
         console.error(error.message);
     }
 });
-const sendAccountDeleteEmail = (email, username, headers) => __awaiter(void 0, void 0, void 0, function* () {
+const sendAccountDeleteEmail = (email, username, deleteUrl, headers) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const newEmail = accountDeleteEmailTemplate.replace("[user_name]", username);
+        const newEmail = accountDeleteEmailTemplate
+            .replace("[user_name]", username)
+            .replace("href=[cancel_deletion_link]", `href=${process.env.CLIENT_URL}`)
+            .replace("href=[account_deletion_link]", `href=${deleteUrl}`)
+            .replace("[account_deletion_link]", deleteUrl)
+            .replace("[cancel_deletion_link]", process.env.CLIENT_URL);
         //Send email content
         yield sendEmail(email, "Account Delete Email", newEmail, headers, attachments);
     }

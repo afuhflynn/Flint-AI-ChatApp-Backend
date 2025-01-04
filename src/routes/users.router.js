@@ -63,7 +63,7 @@ userRouter.put(
   }
 );
 userRouter.delete(
-  "/delete-account",
+  "/delete-account/:userID/:token",
   verifyTokens,
   async (req: Request, res: Response) => {
     try {
