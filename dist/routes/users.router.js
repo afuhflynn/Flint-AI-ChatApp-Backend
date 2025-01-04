@@ -8,66 +8,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { Router } from "express";
-import { deleteUser, forgotPassword, logInUser, logOutUser, resetPassword, signUpUser, verifyUser, } from "../controllers/users.controller.js";
-import verifyTokens from "../middlewares/verifyTokens.js";
+import { loginUser, registerUser } from "../controllers/users.controller.js";
+import passport from "passport";
 const userRouter = Router();
+// Extend the request object
 userRouter.post("/sign-up", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield signUpUser(req, res);
+        yield registerUser(req, res);
     }
     catch (error) {
         console.error("Error in sign-up route:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.post("/sign-in", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.post("/sign-in", passport.authenticate("local", {
+    successRedirect: "/",
+    failureRedirect: "/",
+}), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield logInUser(req, res);
-    }
-    catch (error) {
-        console.error("Error in sign-up route:", error);
-        res.status(500).json({ error: "Internal server error" });
-    }
-}));
-userRouter.put("/verify-account", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield verifyUser(req, res);
-    }
-    catch (error) {
-        console.error("Error in sign-up route:", error);
-        res.status(500).json({ error: "Internal server error" });
-    }
-}));
-userRouter.post("/log-out", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield logOutUser(req, res);
-    }
-    catch (error) {
-        console.error("Error in sign-up route:", error);
-        res.status(500).json({ error: "Internal server error" });
-    }
-}));
-userRouter.patch("/forgot-password", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield forgotPassword(req, res);
-    }
-    catch (error) {
-        console.error("Error in sign-up route:", error);
-        res.status(500).json({ error: "Internal server error" });
-    }
-}));
-userRouter.put("/reset-password/:token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield resetPassword(req, res);
-    }
-    catch (error) {
-        console.error("Error in sign-up route:", error);
-        res.status(500).json({ error: "Internal server error" });
-    }
-}));
-userRouter.delete("/delete-account", verifyTokens, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield deleteUser(req, res);
+        yield loginUser(req, res);
     }
     catch (error) {
         console.error("Error in sign-up route:", error);

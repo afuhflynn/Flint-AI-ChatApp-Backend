@@ -17,6 +17,7 @@
     "npm:@types/passport@^1.0.17": "1.0.17",
     "npm:@types/uuid@10": "10.0.0",
     "npm:bcrypt@^5.1.1": "5.1.1",
+    "npm:cloudinary@^2.5.1": "2.5.1",
     "npm:concurrently@^9.1.1": "9.1.1",
     "npm:cookie-parser@^1.4.7": "1.4.7",
     "npm:cors@^2.8.5": "2.8.5",
@@ -459,6 +460,13 @@
         "string-width",
         "strip-ansi",
         "wrap-ansi"
+      ]
+    },
+    "cloudinary@2.5.1": {
+      "integrity": "sha512-CNg6uU53Hl4FEVynkTGpt5bQEAQWDHi3H+Sm62FzKf5uQHipSN2v7qVqS8GRVqeb0T1WNV+22+75DOJeRXYeSQ==",
+      "dependencies": [
+        "lodash",
+        "q"
       ]
     },
     "color-convert@2.0.1": {
@@ -1177,6 +1185,9 @@
     "punycode@2.3.1": {
       "integrity": "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg=="
     },
+    "q@1.5.1": {
+      "integrity": "sha512-kV/CThkXo6xyFEZUugw/+pIOywXcDbFYgSct5cT3gqlbkBE1SJdwy6UQoZvodiWF/ckQLZyDE/Bu1M6gVu5lVw=="
+    },
     "qs@6.13.0": {
       "integrity": "sha512-+38qI9SOr8tfZ4QmJNplMUxqjbe7LKvvZgWdExBOmd+egZTtjLB67Gu0HRX3u/XOq7UU2Nx6nsjvS16Z9uwfpg==",
       "dependencies": [
@@ -1586,6 +1597,7 @@
         "npm:@types/passport@^1.0.17",
         "npm:@types/uuid@10",
         "npm:bcrypt@^5.1.1",
+        "npm:cloudinary@^2.5.1",
         "npm:concurrently@^9.1.1",
         "npm:cookie-parser@^1.4.7",
         "npm:cors@^2.8.5",

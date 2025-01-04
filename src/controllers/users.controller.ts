@@ -3,6 +3,7 @@ import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import crypto from "node:crypto";
 import { CustomRequest } from "../middlewares/verifyTokens.js";
+import { v2 as cloudinary } from "cloudinary";
 import {
   sendAccountDeleteEmail,
   sendNotificationEmail,
@@ -64,10 +65,7 @@ export const registerUser = async (req: Request, res: Response) => {
 };
 
 // Login a user
-export const loginUser = async (
-  req: Request & CustomRequest,
-  res: Response
-) => {
+export const loginUser = async (req: Request, res: Response) => {
   try {
     // Send welcome email since there is passport authentication
     if (req.session.user?.email && req.session.user?.username)
@@ -182,9 +180,25 @@ export const updateUserProfile = async (
     let userId: string = "";
     if (req.session.user?.id) userId = req.session.user.id;
     const { username, password, avatarUrl } = req.body;
+    // Post avatarUrl to cloudinary before storing in db
+    let newAvatarUrl: string = "";
+    (async function () {
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
+        api_key: process.env.CLOUDINARY_API_KEY!,
+        api_secret: process.env.CLOUDINARY_API_SECRET!,
+      });
+
+      // Upload user avatar image
+      const uploadResult = await cloudinary.uploader.upload(avatarUrl, {
+        public_id: "Flint ai user avatar",
+      });
+
+      newAvatarUrl = uploadResult.url;
+    });
     const updatedData: any = { username };
     if (password) updatedData.password = await bcrypt.hash(password, 10);
-    if (avatarUrl) updatedData.avatarUrl = avatarUrl;
+    if (avatarUrl) updatedData.avatarUrl = newAvatarUrl;
     const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
       new: true,
     });
@@ -334,6 +348,21 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
-// User auth check handler
+// Check auth state
+export const checkAuthState = async (req: Request, res: Response) => {
+  try {
+    let userId: string = "";
+    if (req.session.user?.id) userId = req.session.user.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+    }
+    return res.status(200).json({ success: true, user });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 // NOTE: Will work on more endpoints

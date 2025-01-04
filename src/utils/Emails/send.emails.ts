@@ -6,7 +6,7 @@ import {
   welcomeEmailTemplate,
   accountDeleteEmailTemplate,
 } from "../../emailsTemplateSetup/emailTemplates.js";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { sendEmail } from "../../config/emailSenderSetup.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,7 +23,7 @@ const attachments = [
       "..",
       "assets",
       "logo",
-      "flintai-logo.png"
+      "flintai_logo.png"
     ), // Path to inline image
     cid: "unique_inline_logo_cid", // Content-ID for inline image (must be unique)
   },

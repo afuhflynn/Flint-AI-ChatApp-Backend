@@ -6,6 +6,15 @@ const verificationEmailTemplate = `<!DOCTYPE html>
   <title>Email Verification</title>
   <style>
     /* General Reset */
+    a {
+  text-decoration: none; /* Removes underline */
+  color: inherit; /* Inherits the color from the parent element */
+  background: none; /* Removes any background styles */
+  border: none; /* Removes any borders */
+  outline: none; /* Removes focus outlines */
+  cursor: pointer; /* Optional: ensures the pointer cursor appears */
+}
+
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -169,6 +178,15 @@ const welcomeEmailTemplate = `<!DOCTYPE html>
   <title>Welcome to Flint AI!</title>
   <style>
     /* General Reset */
+    a {
+  text-decoration: none; /* Removes underline */
+  color: inherit; /* Inherits the color from the parent element */
+  background: none; /* Removes any background styles */
+  border: none; /* Removes any borders */
+  outline: none; /* Removes focus outlines */
+  cursor: pointer; /* Optional: ensures the pointer cursor appears */
+}
+
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -318,6 +336,15 @@ const passwordResetEmailTemplate = `<!DOCTYPE html>
     <title>Password Reset Request</title>
     <style>
         /* General Reset */
+        a {
+  text-decoration: none; /* Removes underline */
+  color: inherit; /* Inherits the color from the parent element */
+  background: none; /* Removes any background styles */
+  border: none; /* Removes any borders */
+  outline: none; /* Removes focus outlines */
+  cursor: pointer; /* Optional: ensures the pointer cursor appears */
+}
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -475,6 +502,15 @@ const accountDeleteEmailTemplate = `<!DOCTYPE html>
     <title>Account Deletion Request</title>
     <style>
         /* General Reset */
+        a {
+  text-decoration: none; /* Removes underline */
+  color: inherit; /* Inherits the color from the parent element */
+  background: none; /* Removes any background styles */
+  border: none; /* Removes any borders */
+  outline: none; /* Removes focus outlines */
+  cursor: pointer; /* Optional: ensures the pointer cursor appears */
+}
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -640,6 +676,15 @@ const accountLogoutEmailTemplate = `<!DOCTYPE html>
     <title>Account Logout Notification</title>
     <style>
         /* General Reset */
+        a {
+  text-decoration: none; /* Removes underline */
+  color: inherit; /* Inherits the color from the parent element */
+  background: none; /* Removes any background styles */
+  border: none; /* Removes any borders */
+  outline: none; /* Removes focus outlines */
+  cursor: pointer; /* Optional: ensures the pointer cursor appears */
+}
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -797,6 +842,15 @@ const accountNotificationTemplate = `<!DOCTYPE html>
     <title>Account Activity Notification</title>
     <style>
         /* General Reset */
+        a {
+  text-decoration: none; /* Removes underline */
+  color: inherit; /* Inherits the color from the parent element */
+  background: none; /* Removes any background styles */
+  border: none; /* Removes any borders */
+  outline: none; /* Removes focus outlines */
+  cursor: pointer; /* Optional: ensures the pointer cursor appears */
+}
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;

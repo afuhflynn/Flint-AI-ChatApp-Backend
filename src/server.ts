@@ -11,6 +11,7 @@ import connectDB from "./config/db/connectDB.js";
 import mongoose from "mongoose";
 import path from "node:path";
 import { UserSchemaTypes } from "./TYPES.js";
+import userRouter from "./routes/users.router.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,9 +85,10 @@ app.use(passport.session());
 
 // Route handlers
 app.use("/assist", geminiRouter);
+app.use("/api/auth/users", userRouter);
 
 // Routes to create user account for github and locally
-app.get("/auth/github", passport.authenticate("github"));
+app.get("/api/auth/github", passport.authenticate("github"));
 app.get(
   "/auth/github/callback",
   passport.authenticate("github", {

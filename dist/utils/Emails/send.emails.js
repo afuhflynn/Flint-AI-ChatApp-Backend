@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { accountLogoutEmailTemplate, accountNotificationTemplate, passwordResetEmailTemplate, verificationEmailTemplate, welcomeEmailTemplate, accountDeleteEmailTemplate, } from "../../emailsTemplateSetup/emailTemplates.js";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { sendEmail } from "../../config/emailSenderSetup.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 const attachments = [
     {
         filename: "flintai logo", // Inline file
-        path: path.join(__dirname, "..", "..", "assets", "logo", "flintai-logo.png"), // Path to inline image
+        path: path.join(__dirname, "..", "..", "assets", "logo", "flintai_logo.png"), // Path to inline image
         cid: "unique_inline_logo_cid", // Content-ID for inline image (must be unique)
     },
 ];

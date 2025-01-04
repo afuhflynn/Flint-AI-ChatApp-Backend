@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import crypto from "node:crypto";
+import { v2 as cloudinary } from "cloudinary";
 import { sendAccountDeleteEmail, sendNotificationEmail, sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail, } from "../utils/Emails/send.emails.js";
 import generateVerificationCode from "../utils/generateVerificationCode.js";
 import generateResetToken from "../utils/generateResetToken.js";
@@ -146,11 +147,27 @@ export const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0,
         if ((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id)
             userId = req.session.user.id;
         const { username, password, avatarUrl } = req.body;
+        // Post avatarUrl to cloudinary before storing in db
+        let newAvatarUrl = "";
+        (function () {
+            return __awaiter(this, void 0, void 0, function* () {
+                cloudinary.config({
+                    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+                    api_key: process.env.CLOUDINARY_API_KEY,
+                    api_secret: process.env.CLOUDINARY_API_SECRET,
+                });
+                // Upload user avatar image
+                const uploadResult = yield cloudinary.uploader.upload(avatarUrl, {
+                    public_id: "Flint ai user avatar",
+                });
+                newAvatarUrl = uploadResult.url;
+            });
+        });
         const updatedData = { username };
         if (password)
             updatedData.password = yield bcrypt.hash(password, 10);
         if (avatarUrl)
-            updatedData.avatarUrl = avatarUrl;
+            updatedData.avatarUrl = newAvatarUrl;
         const updatedUser = yield User.findByIdAndUpdate(userId, updatedData, {
             new: true,
         });
@@ -281,6 +298,24 @@ export const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, fun
         return res.status(500).json({ message: "Internal server error" });
     }
 });
-// User auth check handler
+// Check auth state
+export const checkAuthState = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        let userId = "";
+        if ((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id)
+            userId = req.session.user.id;
+        const user = yield User.findById(userId);
+        if (!user) {
+            return res
+                .status(401)
+                .json({ success: false, message: "User not found" });
+        }
+        return res.status(200).json({ success: true, user });
+    }
+    catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+});
 // NOTE: Will work on more endpoints
 //# sourceMappingURL=users.controller.js.map
