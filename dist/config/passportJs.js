@@ -7,11 +7,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import express from "express";
 // Import required modules
 import passport from "passport";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import { Strategy as LocalStrategy } from "passport-local";
 import { config } from "dotenv";
+// import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
 import generateTokens from "../utils/generateTokens.js";
 config();
@@ -35,6 +37,7 @@ const localVerifyCallback = (username, password, done) => __awaiter(void 0, void
         foundUser.accessTokenExpires = accessTokenExpiresAt;
         foundUser.refreshTokenExpires = refreshTokenExpiresAt;
         yield foundUser.save();
+        express.request.session.user = foundUser;
         return done(null, foundUser, { message: "Logged in successfully" });
     }
     catch (error) {

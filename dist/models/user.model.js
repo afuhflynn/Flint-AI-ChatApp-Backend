@@ -69,16 +69,6 @@ const UserSchema = new mongoose.Schema({
 }, {
     timestamps: true, // Automatically add createdAt and updatedAt fields
 });
-// Pre-save middleware to hash the password before saving
-UserSchema.pre("save", function (next) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!this.isModified("password") || !this.password)
-            return next();
-        const salt = yield bcrypt.genSalt(10);
-        this.password = yield bcrypt.hash(this.password, salt);
-        next();
-    });
-});
 // Method to compare passwords
 UserSchema.methods.comparePassword = function (candidatePassword) {
     return __awaiter(this, void 0, void 0, function* () {

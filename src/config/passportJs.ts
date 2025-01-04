@@ -1,13 +1,23 @@
+import express from "express";
 // Import required modules
 import passport, { DoneCallback } from "passport";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import { Strategy as LocalStrategy } from "passport-local";
 import { config } from "dotenv";
+// import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
 import generateTokens from "../utils/generateTokens.js";
-import { VerifyFunction } from "../TYPES.js";
+import { UserSchemaTypes, VerifyFunction } from "../TYPES.js";
 
 config();
+
+declare module "express-session" {
+  interface SessionData {
+    visited?: boolean;
+    userId: "";
+    user: UserSchemaTypes | null;
+  }
+}
 
 // Verify callback for Local Strategy
 const localVerifyCallback: VerifyFunction = async (
@@ -46,6 +56,7 @@ const localVerifyCallback: VerifyFunction = async (
     foundUser.accessTokenExpires = accessTokenExpiresAt;
     foundUser.refreshTokenExpires = refreshTokenExpiresAt;
     await foundUser.save();
+    express.request.session.user = foundUser;
     return done(null, foundUser, { message: "Logged in successfully" });
   } catch (error) {
     return done(error, false, { message: "An error occurred" });

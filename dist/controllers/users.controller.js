@@ -59,9 +59,8 @@ export const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
     try {
         // Send welcome email since there is passport authentication
         if (((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.email) && ((_b = req.session.user) === null || _b === void 0 ? void 0 : _b.username))
-            yield sendWelcomeEmail(req.session.user.email, req.session.user.username, {
-                "X-Category": "Welcome Email",
-            });
+            //send notification email
+            yield sendNotificationEmail("Account Login", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Login Notification" });
         return res.status(200).json({ message: "Logged in successfully" });
     }
     catch (error) {
@@ -94,6 +93,8 @@ export const sendDeleteAccountRequest = (req, res) => __awaiter(void 0, void 0, 
             return res.status(404).json({ error: "User not found" });
         }
         const token = yield crypto.randomBytes(60).toString("hex");
+        user.accountDeleteToken = token;
+        yield user.save();
         yield sendAccountDeleteEmail(user.email, user.username, `${process.env.CLIENT_URL}/delete-account/${user._id}/${token}`, { "X-Category": "Account Delete Email" });
         return res.status(200).json({ message: "Account deletion request sent" });
     }
@@ -103,17 +104,24 @@ export const sendDeleteAccountRequest = (req, res) => __awaiter(void 0, void 0, 
 });
 // Delete user account
 export const deleteUserAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    const { userId, token } = req.params;
     try {
-        let userId = "";
-        if ((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id)
-            userId = req.session.user.id; // Assuming userId is set in the request by an auth middleware
-        const deletedUser = yield User.findByIdAndDelete(userId);
+        const deletedUser = yield User.deleteOne({
+            _id: userId,
+            accountDeleteToken: token,
+        });
         if (!deletedUser) {
             return res.status(404).json({ error: "User not found" });
         }
         // Send account delete notification email
-        yield sendNotificationEmail("Account Deletion", deletedUser.email, deletedUser.username, new Date().toLocaleDateString(), `${(deletedUser.username, deletedUser.email)}`, { "X-Category": "Account Deletion Notification" });
+        if (req.session.user)
+            yield sendNotificationEmail("Account Deletion", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Account Deletion Notification" });
+        //Delete the user session from the express-session object
+        req.session.destroy((error) => {
+            if (error) {
+                return res.status(500).json({ message: "Internal server error" });
+            }
+        });
         return res
             .status(200)
             .json({ message: "User account deleted successfully" });

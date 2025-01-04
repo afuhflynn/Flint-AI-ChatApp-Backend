@@ -17,6 +17,7 @@ export interface UserSchemaTypes extends Document {
   accessTokenExpires?: Date;
   refreshToken?: string;
   refreshTokenExpires?: Date;
+  accountDeleteToken?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
   chats?: {
     id: string;

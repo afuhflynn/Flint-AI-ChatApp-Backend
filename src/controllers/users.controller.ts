@@ -69,12 +69,14 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     // Send welcome email since there is passport authentication
     if (req.session.user?.email && req.session.user?.username)
-      await sendWelcomeEmail(
+      //send notification email
+      await sendNotificationEmail(
+        "Account Login",
         req.session.user.email,
         req.session.user.username,
-        {
-          "X-Category": "Welcome Email",
-        }
+        new Date().toLocaleDateString(),
+        `${(req.session.user.username, req.session.user.email)}`,
+        { "X-Category": "Login Notification" }
       );
     return res.status(200).json({ message: "Logged in successfully" });
   } catch (error) {
@@ -112,6 +114,8 @@ export const sendDeleteAccountRequest = async (
       return res.status(404).json({ error: "User not found" });
     }
     const token = await crypto.randomBytes(60).toString("hex");
+    user.accountDeleteToken = token;
+    await user.save();
     await sendAccountDeleteEmail(
       user.email,
       user.username,
@@ -129,22 +133,32 @@ export const deleteUserAccount = async (
   req: Request & CustomRequest,
   res: Response
 ) => {
+  const { userId, token } = req.params;
   try {
-    let userId: string = "";
-    if (req.session.user?.id) userId = req.session.user.id; // Assuming userId is set in the request by an auth middleware
-    const deletedUser = await User.findByIdAndDelete(userId);
+    const deletedUser = await User.deleteOne({
+      _id: userId,
+      accountDeleteToken: token,
+    });
     if (!deletedUser) {
       return res.status(404).json({ error: "User not found" });
     }
     // Send account delete notification email
-    await sendNotificationEmail(
-      "Account Deletion",
-      deletedUser.email,
-      deletedUser.username,
-      new Date().toLocaleDateString(),
-      `${(deletedUser.username, deletedUser.email)}`,
-      { "X-Category": "Account Deletion Notification" }
-    );
+    if (req.session.user)
+      await sendNotificationEmail(
+        "Account Deletion",
+        req.session.user.email,
+        req.session.user.username,
+        new Date().toLocaleDateString(),
+        `${(req.session.user.username, req.session.user.email)}`,
+        { "X-Category": "Account Deletion Notification" }
+      );
+
+    //Delete the user session from the express-session object
+    req.session.destroy((error) => {
+      if (error) {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+    });
     return res
       .status(200)
       .json({ message: "User account deleted successfully" });

@@ -7,11 +7,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Router } from "express";
+import express, { Router } from "express";
 import { loginUser, registerUser } from "../controllers/users.controller.js";
 import passport from "passport";
 const userRouter = Router();
-// Extend the request object
+// Create a new express application instance
+const app = express();
+// Passport js init
+import "../config/passportJs.js";
+app.use(passport.initialize());
+app.use(passport.session());
 userRouter.post("/sign-up", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield registerUser(req, res);
@@ -21,10 +26,7 @@ userRouter.post("/sign-up", (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.post("/sign-in", passport.authenticate("local", {
-    successRedirect: "/",
-    failureRedirect: "/",
-}), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.post("/sign-in", passport.authenticate("local"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield loginUser(req, res);
     }
