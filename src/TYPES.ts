@@ -85,8 +85,8 @@ export interface GitHubProfileTypes {
   username: string; // GitHub username
   displayName: string; // User's full name (if available)
   profileUrl: string;
-  emails: { value: string; verified: boolean }[]; // Array of email objects
-  photos: { value: string }[]; // Array of photo objects containing the avatar URL
+  emails?: { value: string; verified: boolean }[]; // Array of email objects
+  photos?: { value: string }[]; // Array of photo objects containing the avatar URL
   provider: string; // Always "github" for this strategy
   _json: {
     login: string; // GitHub username

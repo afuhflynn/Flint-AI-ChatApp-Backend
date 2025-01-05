@@ -5,6 +5,7 @@ import crypto from "node:crypto";
 import { CustomRequest } from "../middlewares/verifyTokens.js";
 import { v2 as cloudinary } from "cloudinary";
 import {
+  sendAccountDeleteAdminNotificationEmail,
   sendAccountDeleteEmail,
   sendNotificationEmail,
   sendPasswordResetEmail,
@@ -14,6 +15,7 @@ import {
 import generateVerificationCode from "../utils/generateVerificationCode.js";
 import { UserSchemaTypes } from "../TYPES.js";
 import generateResetToken from "../utils/generateResetToken.js";
+import { format } from "date-fns";
 
 declare module "express-session" {
   interface SessionData {
@@ -51,8 +53,9 @@ export const registerUser = async (req: Request, res: Response) => {
     const verificationCode: string = generateVerificationCode();
     // Verification expires at date
     const verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const newUserName = username.trim(); // Remove all spaces in the username and convert it to a single word
     const newUser = new User({
-      username,
+      newUserName,
       password: hashedPassword,
       email,
       verificationCode,
@@ -86,7 +89,7 @@ export const loginUser = async (req: Request, res: Response) => {
         `${(req.session.user.username, req.session.user.email)}`,
         { "X-Category": "Login Notification" }
       );
-      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+    req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
     return res.status(200).json({ message: "Logged in successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
@@ -154,6 +157,13 @@ export const deleteUserAccount = async (
   res: Response
 ) => {
   const { userId, token } = req.params;
+  const { message } = req.body;
+  // TODO: Send the admin an email containing and explaining users reason for account deletion
+  // Check if user provided a message
+  if (!message)
+    return res
+      .status(400)
+      .json({ message: "Must provide a message to proceed!" });
   try {
     const deletedUser = await User.deleteOne({
       _id: userId,
@@ -163,15 +173,27 @@ export const deleteUserAccount = async (
       return res.status(404).json({ error: "User not found" });
     }
     // Send account delete notification email
-    if (req.session.user)
+    if (req.session.user) {
+      // Send user account delete email
       await sendNotificationEmail(
         "Account Deletion",
         req.session.user.email,
         req.session.user.username,
-        new Date().toLocaleDateString(),
+        format(new Date(), "YYYY:MM:dd"),
         `${(req.session.user.username, req.session.user.email)}`,
         { "X-Category": "Account Deletion Notification" }
       );
+
+      // Send email to notify admin that a user account has been deleted
+      await sendAccountDeleteAdminNotificationEmail(
+        req.session.user.email,
+        req.session.user.username,
+        "User account deleted",
+        message,
+        new Date().toLocaleDateString(),
+        { "X-Category": "Account deletion" }
+      );
+    }
 
     //Delete the user session from the express-session object
     req.session.destroy((error) => {
@@ -179,6 +201,7 @@ export const deleteUserAccount = async (
         return res.status(500).json({ message: "Internal server error" });
       }
     });
+    res.clearCookie("connect.sid");
     return res
       .status(200)
       .json({ message: "User account deleted successfully" });
