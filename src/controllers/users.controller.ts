@@ -21,6 +21,14 @@ declare module "express-session" {
     userId: "";
     user: UserSchemaTypes | null;
   }
+
+  interface SessionStore {
+    // session store interface
+    get: (
+      sid: string,
+      callback: (err: any, session: Session | null) => void
+    ) => void;
+  }
 }
 
 // Register user
@@ -78,6 +86,7 @@ export const loginUser = async (req: Request, res: Response) => {
         `${(req.session.user.username, req.session.user.email)}`,
         { "X-Category": "Login Notification" }
       );
+      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
     return res.status(200).json({ message: "Logged in successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
@@ -103,6 +112,8 @@ export const logoutUser = async (req: Request, res: Response) => {
           { "X-Category": "Logout Notification" }
         );
       }
+      // Clear cookies
+      res.clearCookie("connect.sid");
       return res.status(200).json({ message: "Logged out successfully" });
     });
   } catch (error) {
@@ -382,6 +393,7 @@ export const checkAuthState = async (req: Request, res: Response) => {
         .status(401)
         .json({ success: false, message: "User not found" });
     }
+    req.user = req.session.user as UserSchemaTypes;
     return res.status(200).json({ success: true, user });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });

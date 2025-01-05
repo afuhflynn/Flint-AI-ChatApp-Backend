@@ -27,12 +27,12 @@ userRouter.post("/sign-up", (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.post("/sign-in", passport.authenticate("local"), updateUserSession, passport.authenticate("local"), updateUserSession, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.post("/sign-in", passport.authenticate("local"), updateUserSession, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield loginUser(req, res);
     }
     catch (error) {
-        console.error("Error in sign-up route:", error);
+        console.error("Error in sign-in route:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -41,7 +41,7 @@ userRouter.post("/log-out", (req, res) => __awaiter(void 0, void 0, void 0, func
         yield logoutUser(req, res);
     }
     catch (error) {
-        console.error("Error in sign-up route:", error);
+        console.error("Error in log-out route:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 }));

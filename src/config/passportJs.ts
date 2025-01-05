@@ -6,7 +6,7 @@ import { config } from "dotenv";
 // import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
 import generateTokens from "../utils/generateTokens.js";
-import { VerifyFunction } from "../TYPES.js";
+import { GitHubProfileTypes, VerifyFunction } from "../TYPES.js";
 
 config();
 
@@ -61,18 +61,19 @@ const gitHubVerifyCallback = async (
   done: DoneCallback
 ): Promise<void> => {
   try {
+    console.log(profile);
     const existingUser = await User.findOne({ githubId: profile.id });
     if (existingUser) return done(null, existingUser);
 
     const newUser = new User({
       githubId: profile.id,
       username: profile.username,
-      email: profile.emails[0]?.value,
+      email: profile?.emails[0]?.value,
       preferences: {
-        avatarUrl: profile.avatar_url,
+        avatarUrl: profile?.avatar_url,
         theme: "light",
       },
-      bio: profile.bio,
+      bio: profile?.bio,
       accessToken,
       refreshToken,
       accesstokenExpires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour

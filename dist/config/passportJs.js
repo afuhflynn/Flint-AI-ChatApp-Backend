@@ -46,18 +46,19 @@ const localVerifyCallback = (username, password, done) => __awaiter(void 0, void
 const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
+        console.log(profile);
         const existingUser = yield User.findOne({ githubId: profile.id });
         if (existingUser)
             return done(null, existingUser);
         const newUser = new User({
             githubId: profile.id,
             username: profile.username,
-            email: (_a = profile.emails[0]) === null || _a === void 0 ? void 0 : _a.value,
+            email: (_a = profile === null || profile === void 0 ? void 0 : profile.emails[0]) === null || _a === void 0 ? void 0 : _a.value,
             preferences: {
-                avatarUrl: profile.avatar_url,
+                avatarUrl: profile === null || profile === void 0 ? void 0 : profile.avatar_url,
                 theme: "light",
             },
-            bio: profile.bio,
+            bio: profile === null || profile === void 0 ? void 0 : profile.bio,
             accessToken,
             refreshToken,
             accesstokenExpires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour

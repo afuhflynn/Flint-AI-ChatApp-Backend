@@ -61,6 +61,7 @@ export const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
         if (((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.email) && ((_b = req.session.user) === null || _b === void 0 ? void 0 : _b.username))
             //send notification email
             yield sendNotificationEmail("Account Login", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Login Notification" });
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
         return res.status(200).json({ message: "Logged in successfully" });
     }
     catch (error) {
@@ -80,6 +81,8 @@ export const logoutUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 console.log(req.session.user);
                 yield sendNotificationEmail("Account Logout", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Logout Notification" });
             }
+            // Clear cookies
+            res.clearCookie("connect.sid");
             return res.status(200).json({ message: "Logged out successfully" });
         }));
     }
@@ -325,6 +328,7 @@ export const checkAuthState = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 .status(401)
                 .json({ success: false, message: "User not found" });
         }
+        req.user = req.session.user;
         return res.status(200).json({ success: true, user });
     }
     catch (error) {
