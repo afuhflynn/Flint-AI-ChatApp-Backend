@@ -85,7 +85,7 @@ export interface GitHubProfileTypes {
   username: string; // GitHub username
   displayName: string; // User's full name (if available)
   profileUrl: string;
-  emails?: { value: string; verified: boolean }[]; // Array of email objects
+  emails: { value: string; verified: boolean }[]; // Array of email objects
   photos?: { value: string }[]; // Array of photo objects containing the avatar URL
   provider: string; // Always "github" for this strategy
   _json: {
@@ -93,9 +93,11 @@ export interface GitHubProfileTypes {
     id: number; // GitHub numeric ID
     node_id: string;
     avatar_url: string; // Avatar URL
+    gravatar_url: string;
+    url: string;
     html_url: string; // Profile URL on GitHub
     name?: string; // User's full name
-    email?: string; // User's public email
+    email: string; // User's public email
     bio?: string; // User bio
     public_repos: number; // Number of public repositories
     followers: number; // Number of followers

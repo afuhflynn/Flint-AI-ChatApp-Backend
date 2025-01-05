@@ -57,11 +57,10 @@ const localVerifyCallback: VerifyFunction = async (
 const gitHubVerifyCallback = async (
   accessToken: string,
   refreshToken: string,
-  profile: any,
+  profile: GitHubProfileTypes,
   done: DoneCallback
 ): Promise<void> => {
   try {
-    console.log(profile);
     const existingUser = await User.findOne({ githubId: profile.id });
     if (existingUser) return done(null, existingUser);
 
@@ -70,10 +69,10 @@ const gitHubVerifyCallback = async (
       username: profile.username,
       email: profile?.emails[0]?.value,
       preferences: {
-        avatarUrl: profile?.avatar_url,
+        avatarUrl: profile._json.avatar_url,
         theme: "light",
       },
-      bio: profile?.bio,
+      bio: profile._json.bio,
       accessToken,
       refreshToken,
       accesstokenExpires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour

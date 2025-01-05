@@ -11,9 +11,10 @@ import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import crypto from "node:crypto";
 import { v2 as cloudinary } from "cloudinary";
-import { sendAccountDeleteEmail, sendNotificationEmail, sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail, } from "../utils/Emails/send.emails.js";
+import { sendAccountDeleteAdminNotificationEmail, sendAccountDeleteEmail, sendNotificationEmail, sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail, } from "../utils/Emails/send.emails.js";
 import generateVerificationCode from "../utils/generateVerificationCode.js";
 import generateResetToken from "../utils/generateResetToken.js";
+import { format } from "date-fns";
 // Register user
 export const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, password, email } = req.body;
@@ -34,8 +35,9 @@ export const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, func
         const verificationCode = generateVerificationCode();
         // Verification expires at date
         const verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const newUserName = username.trim(); // Remove all spaces in the username and convert it to a single word
         const newUser = new User({
-            username,
+            newUserName,
             password: hashedPassword,
             email,
             verificationCode,
@@ -114,6 +116,13 @@ export const sendDeleteAccountRequest = (req, res) => __awaiter(void 0, void 0, 
 // Delete user account
 export const deleteUserAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId, token } = req.params;
+    const { message } = req.body;
+    // TODO: Send the admin an email containing and explaining users reason for account deletion
+    // Check if user provided a message
+    if (!message)
+        return res
+            .status(400)
+            .json({ message: "Must provide a message to proceed!" });
     try {
         const deletedUser = yield User.deleteOne({
             _id: userId,
@@ -123,14 +132,19 @@ export const deleteUserAccount = (req, res) => __awaiter(void 0, void 0, void 0,
             return res.status(404).json({ error: "User not found" });
         }
         // Send account delete notification email
-        if (req.session.user)
-            yield sendNotificationEmail("Account Deletion", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Account Deletion Notification" });
+        if (req.session.user) {
+            // Send user account delete email
+            yield sendNotificationEmail("Account Deletion", req.session.user.email, req.session.user.username, format(new Date(), "YYYY:MM:dd"), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Account Deletion Notification" });
+            // Send email to notify admin that a user account has been deleted
+            yield sendAccountDeleteAdminNotificationEmail(req.session.user.email, req.session.user.username, "User account deleted", message, new Date().toLocaleDateString(), { "X-Category": "Account deletion" });
+        }
         //Delete the user session from the express-session object
         req.session.destroy((error) => {
             if (error) {
                 return res.status(500).json({ message: "Internal server error" });
             }
         });
+        res.clearCookie("connect.sid");
         return res
             .status(200)
             .json({ message: "User account deleted successfully" });

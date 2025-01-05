@@ -7,11 +7,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { accountLogoutEmailTemplate, accountNotificationTemplate, passwordResetEmailTemplate, verificationEmailTemplate, welcomeEmailTemplate, accountDeleteEmailTemplate, } from "../../emailsTemplateSetup/emailTemplates.js";
+import { accountLogoutEmailTemplate, accountNotificationTemplate, passwordResetEmailTemplate, verificationEmailTemplate, welcomeEmailTemplate, accountDeleteEmailTemplate, adminNotificationTemplateForAccountDelete, } from "../../emailsTemplateSetup/emailTemplates.js";
 import crypto from "node:crypto";
+import { config } from "dotenv";
 import { sendEmail } from "../../config/emailSenderSetup.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const attachments = [
@@ -100,5 +102,26 @@ const sendAccountDeleteEmail = (email, username, deleteUrl, headers) => __awaite
         console.error(error.message);
     }
 });
-export { sendVerificationEmail, sendNotificationEmail, sendWelcomeEmail, sendLogoutEmail, sendPasswordResetEmail, sendAccountDeleteEmail, };
+const sendAccountDeleteAdminNotificationEmail = (email, username, activityDescription, accountDeleteReason, time, headers) => __awaiter(void 0, void 0, void 0, function* () {
+    // <strong>Activity:</strong> [activity_description]<br>
+    //               <strong>Reason:</strong> [account_delete_reason]<br>
+    //               <strong>Time:</strong> [activity_time]<br>
+    //               <strong>Author:</strong> [activity_author]<br>
+    try {
+        const newEmail = adminNotificationTemplateForAccountDelete
+            .replace("[user_name]", "Afuh Flyine")
+            .replace("[activity_description]", activityDescription)
+            .replace("[account_delete_reason]", accountDeleteReason)
+            .replace("[activity_time]", time)
+            .replace("[activity_author]", `${username}, ${email}`);
+        // Read admin email from env file
+        const adminEmail = process.env.ADMIN_EMAIL;
+        //Send email content
+        yield sendEmail(adminEmail, "Account Delete Email", newEmail, headers, attachments);
+    }
+    catch (error) {
+        console.error(error.message);
+    }
+});
+export { sendVerificationEmail, sendNotificationEmail, sendWelcomeEmail, sendLogoutEmail, sendPasswordResetEmail, sendAccountDeleteEmail, sendAccountDeleteAdminNotificationEmail, };
 //# sourceMappingURL=send.emails.js.map
