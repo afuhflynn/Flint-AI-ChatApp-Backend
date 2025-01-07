@@ -355,14 +355,12 @@ export const githubLogin = (req, res) => __awaiter(void 0, void 0, void 0, funct
     try {
         if (((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.email) && ((_b = req.session.user) === null || _b === void 0 ? void 0 : _b.username)) {
             //send notification email
-            yield sendNotificationEmail("Account Login", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Login Notification" });
-            // Send welcome email since there is passport authentication
-            yield sendWelcomeEmail(req.session.user.email, req.session.user.username, { "X-Category": "Welcome Email" });
+            yield sendNotificationEmail("Account Login Via Github", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Login Notification" });
         }
         else {
             return res.status(401).json({ message: "Unauthorized" });
         }
-        //Redirect user permently to frontend home page
+        //Redirect user permanently to frontend home page
         return res.status(301).redirect(`${process.env.CLIENT_URL}`);
     }
     catch (error) {

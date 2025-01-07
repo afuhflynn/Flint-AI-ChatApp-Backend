@@ -429,23 +429,17 @@ export const githubLogin = async (req: Request, res: Response) => {
     if (req.session.user?.email && req.session.user?.username) {
       //send notification email
       await sendNotificationEmail(
-        "Account Login",
+        "Account Login Via Github",
         req.session.user.email,
         req.session.user.username,
         new Date().toLocaleDateString(),
         `${(req.session.user.username, req.session.user.email)}`,
         { "X-Category": "Login Notification" }
       );
-      // Send welcome email since there is passport authentication
-      await sendWelcomeEmail(
-        req.session.user.email,
-        req.session.user.username,
-        { "X-Category": "Welcome Email" }
-      );
     } else {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    //Redirect user permently to frontend home page
+    //Redirect user permanently to frontend home page
     return res.status(301).redirect(`${process.env.CLIENT_URL}`);
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
