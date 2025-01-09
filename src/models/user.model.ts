@@ -28,6 +28,20 @@ const UserSchema: Schema<UserSchemaTypes> = new mongoose.Schema(
       minlength: 8,
       select: false, // Exclude password from query results by default
     },
+    name: {
+      firstName: {
+        type: String,
+        trim: true,
+        minlength: 3,
+        maxlength: 20,
+      },
+      lastName: {
+        type: String,
+        trim: true,
+        minlength: 3,
+        maxlength: 20,
+      },
+    },
     githubId: {
       type: String,
       unique: true,
@@ -59,6 +73,29 @@ const UserSchema: Schema<UserSchemaTypes> = new mongoose.Schema(
         enum: ["light", "dark"],
         default: "light",
       },
+    },
+    chats: {
+      type: Array,
+      required: true,
+      default: [
+        {
+          id: String,
+          title: String,
+          createdAt: Date,
+          updatedAt: Date,
+          chat: {
+            type: Array,
+            required: false,
+            default: [
+              {
+                id: String,
+                user: String,
+                bot: String,
+              },
+            ],
+          },
+        },
+      ],
     },
   },
   {

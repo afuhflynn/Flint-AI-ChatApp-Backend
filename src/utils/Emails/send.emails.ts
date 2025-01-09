@@ -7,7 +7,6 @@ import {
   accountDeleteEmailTemplate,
   adminNotificationTemplateForAccountDelete,
 } from "../../emailsTemplateSetup/emailTemplates.js";
-import crypto from "node:crypto";
 import { config } from "dotenv";
 import { sendEmail } from "../../config/emailSenderSetup.js";
 import path from "node:path";
@@ -36,12 +35,12 @@ const sendVerificationEmail = async (
   code: string,
   email: string,
   username: string,
+  token: string,
   headers: {
     "X-Category": string;
   }
 ) => {
   try {
-    const token = await crypto.randomBytes(20).toString("hex");
     const newEmail: string = verificationEmailTemplate
       .replace("[user_name]", username)
       .replace("[verification_code]", code)

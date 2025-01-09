@@ -9,10 +9,16 @@ export interface UserSchemaTypes extends Document {
   role: "user" | "admin";
   isVerified: boolean;
   bio: string;
+  name?: {
+    firstName: string;
+    lastName: string;
+  };
   resetPasswordToken?: string;
   resetPasswordTokenExpires?: Date;
   verificationCode?: string;
   verificationCodeExpires?: Date;
+  verificationToken?: string;
+  verificationTokenExpires?: Date;
   accessToken?: string;
   accessTokenExpires?: Date;
   refreshToken?: string;
@@ -21,13 +27,13 @@ export interface UserSchemaTypes extends Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
   chats?: {
     id: string;
-    title: string;
-    conversations: {
-      chatsession: {
-        id: string;
-        user: string;
-        bot: string;
-      };
+    title: string | any;
+    createdAt: Date;
+    updatedAt?: Date;
+    chat: {
+      id: string;
+      user: string;
+      bot: string | any;
     }[];
   }[];
   preferences?: {

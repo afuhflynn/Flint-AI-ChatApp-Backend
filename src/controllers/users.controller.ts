@@ -50,20 +50,24 @@ export const registerUser = async (req: Request, res: Response) => {
         .json({ success: false, message: "User already exists" });
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+    // Generate a new verification token
+    const token: string = await crypto.randomBytes(60).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    // Generate new verification code
     const verificationCode: string = generateVerificationCode();
-    // Verification expires at date
-    const verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const newUserName = username.trim(); // Remove all spaces in the username and convert it to a single word
     const newUser = new User({
       newUserName,
       password: hashedPassword,
       email,
       verificationCode,
-      verificationCodeExpires,
+      verificationCodeExpires: expiresAt,
+      verificationToken: token,
+      verificationTokenExpiresAt: expiresAt,
     });
     await newUser.save();
 
-    await sendVerificationEmail(verificationCode, email, username, {
+    await sendVerificationEmail(verificationCode, email, username, token, {
       "X-Category": "Verification Email",
     });
 
@@ -236,7 +240,7 @@ export const updateUserProfile = async (
   try {
     let userId: string = "";
     if (req.session.user?.id) userId = req.session.user.id;
-    const { username, password, avatarUrl } = req.body;
+    const { username, password, avatarUrl, firstName, lastName } = req.body;
     // Post avatarUrl to cloudinary before storing in db
     let newAvatarUrl: string = "";
     (async function () {
@@ -248,14 +252,18 @@ export const updateUserProfile = async (
 
       // Upload user avatar image
       const uploadResult = await cloudinary.uploader.upload(avatarUrl, {
-        public_id: "Flint ai user avatar",
+        public_id: `Flint ai user ${username} profile avatar`,
       });
 
       newAvatarUrl = uploadResult.url;
     });
-    const updatedData: any = { username };
+    const updatedData: any = { username }; // Updated user data object
     if (password) updatedData.password = await bcrypt.hash(password, 10);
     if (avatarUrl) updatedData.avatarUrl = newAvatarUrl;
+    if (firstName) updatedData.name.firstName = firstName;
+    if (lastName) updatedData.name.firstName = lastName;
+
+    // Fetch user and updata if the fields were provided
     const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
       new: true,
     });
@@ -277,7 +285,10 @@ export const updateUserProfile = async (
 };
 
 // Verify user account
-export const verifyUserAccount = async (req: Request, res: Response) => {
+export const verifyUserAccountWithCode = async (
+  req: Request,
+  res: Response
+) => {
   const { code } = req.body;
   if (!code)
     return res
@@ -296,11 +307,51 @@ export const verifyUserAccount = async (req: Request, res: Response) => {
         message: "Invalid or expired verification code",
       });
     user.isVerified = true;
+    user.verificationCode = "";
+    user.verificationCodeExpires = new Date(Date.now());
+    user.verificationToken = "";
+    user.verificationTokenExpires = new Date(Date.now());
     await user.save();
     await sendWelcomeEmail(user.email, user.username, {
       "X-Category": "Welcome Email",
     });
-    return res.status(200).json({ message: "User account verified" });
+    return res.status(200).json({ message: "Account verified successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+// Verify user account
+export const verifyUserAccountWithToken = async (
+  req: Request,
+  res: Response
+) => {
+  const { token } = req.params;
+  if (!token)
+    return res
+      .status(400)
+      .json({ success: false, message: "Expired verification token" });
+  try {
+    // Find for a user with verification code that has not expired
+    const user = await User.findOne({
+      verificationToken: token,
+      isVerified: false,
+      verificationTokenExpires: { $gt: new Date(Date.now()) },
+    });
+    if (!user)
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification token",
+      });
+    user.isVerified = true;
+    user.verificationCode = "";
+    user.verificationCodeExpires = new Date(Date.now());
+    user.verificationToken = "";
+    user.verificationTokenExpires = new Date(Date.now());
+    await user.save();
+    await sendWelcomeEmail(user.email, user.username, {
+      "X-Category": "Welcome Email",
+    });
+    return res.status(200).json({ message: "Account verified successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -324,12 +375,17 @@ export const resendVerificationCode = async (req: Request, res: Response) => {
         .json({ success: false, message: "User not found" });
     if (user.isVerified)
       return res.status(400).json({ success: false, message: "User verified" });
+    // Generate a new verification token
+    const token: string = await crypto.randomBytes(60).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     // Generate new verification code
     const verificationCode: string = generateVerificationCode();
     user.verificationCode = verificationCode;
-    user.verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    user.verificationCodeExpires = expiresAt;
+    user.verificationToken = token;
+    user.verificationTokenExpires = expiresAt;
     await user.save();
-    await sendVerificationEmail(verificationCode, email, user.username, {
+    await sendVerificationEmail(verificationCode, email, user.username, token, {
       "X-Category": "Verification Email",
     });
     return res.status(200).json({ message: "Verification email sent" });
