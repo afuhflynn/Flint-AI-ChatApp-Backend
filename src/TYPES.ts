@@ -8,6 +8,7 @@ export interface UserSchemaTypes extends Document {
   githubId?: string;
   role: "user" | "admin";
   isVerified: boolean;
+  hasTakenTour: boolean;
   bio: string;
   name?: {
     firstName: string;

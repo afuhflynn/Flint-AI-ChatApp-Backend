@@ -56,6 +56,10 @@ const UserSchema: Schema<UserSchemaTypes> = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    hasTakenTour: {
+      type: Boolean,
+      default: false,
+    },
     bio: {
       type: String,
       maxlength: 250,
