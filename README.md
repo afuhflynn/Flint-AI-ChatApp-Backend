@@ -1,7 +1,7 @@
 # Welcome to the Flint AI ChatApp frontend
 
 <div align="center">
-  <img src="./public/fav_logo_nbg.png" alt="Flint ai logo" width="200"/>
+  <img src="./public/flintai-logo.png" alt="Flint ai logo" width="200"/>
 </div>
 
 # Welcome to the Flint-AI-ChatApp Backend!
