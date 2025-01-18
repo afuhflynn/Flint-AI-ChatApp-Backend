@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { accountLogoutEmailTemplate, accountNotificationTemplate, passwordResetEmailTemplate, verificationEmailTemplate, welcomeEmailTemplate, accountDeleteEmailTemplate, adminNotificationTemplateForAccountDelete, } from "../../emailsTemplateSetup/emailTemplates.js";
-import crypto from "node:crypto";
 import { config } from "dotenv";
 import { sendEmail } from "../../config/emailSenderSetup.js";
 import path from "node:path";
@@ -23,9 +22,8 @@ const attachments = [
         cid: "unique_inline_logo_cid", // Content-ID for inline image (must be unique)
     },
 ];
-const sendVerificationEmail = (code, email, username, headers) => __awaiter(void 0, void 0, void 0, function* () {
+const sendVerificationEmail = (code, email, username, token, headers) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const token = yield crypto.randomBytes(20).toString("hex");
         const newEmail = verificationEmailTemplate
             .replace("[user_name]", username)
             .replace("[verification_code]", code)

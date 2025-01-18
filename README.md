@@ -224,7 +224,9 @@ Stay tuned for updates on these features!
 - **Your Name** - *Initial work* - [AfuhFlynns](https://github.com/AfuhFlynns)
 
 ## License
-This project is licensed under the MIT License.
+
+This project is proprietary and subject to the terms described in the ![LICENSE](./LICENSE.txt) file. Unauthorized copying, distribution, or modification of this software is strictly prohibited.
+
 
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request.

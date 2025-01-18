@@ -13,20 +13,20 @@ import { config } from "dotenv";
 config();
 const genAI = new GoogleGenerativeAI(String(process.env.GOOGLE_GEMINI_API_KEY));
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-const genAIEndPoint = (prompt) => __awaiter(void 0, void 0, void 0, function* () {
+// model.generateContentStream
+// model.generationConfig
+// model.toolConfig
+// model.startChat
+// TODO: In the future models will perform conversations based on history
+const genAIEndPoint = (prompt, chatHistory) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(chatHistory);
     let result = "";
-    let title = "";
     try {
-        // User prompt title data set up
-        const titleData = `Generate a short and consise appropriate title for this user prompt: "${prompt}.\n Let it not be more than 6 words"`;
         // User prompt response data set up
         const responseData = `Your name is Flintai Assistant bot.\nAnd then reply to this prompt: "${prompt}"`;
-        // Generate a title for each chat
         // Generate content
-        const aiTitle = yield model.generateContent(titleData);
         const aiResponse = yield model.generateContent(responseData);
         result = aiResponse.response.text();
-        title = aiTitle.response.text();
     }
     catch (error) {
         if (error) {
@@ -34,10 +34,24 @@ const genAIEndPoint = (prompt) => __awaiter(void 0, void 0, void 0, function* ()
         }
         // console.error(error.message);
     }
-    return {
-        response: result,
-        title: title,
-    };
+    return result;
 });
-export default genAIEndPoint;
+const genAITitleEndPoint = (prompt) => __awaiter(void 0, void 0, void 0, function* () {
+    let title = "";
+    try {
+        // User prompt title data set up
+        const titleData = `Generate a short and consise appropriate title for this user prompt: "${prompt}.\n Let it not be more than 6 words"`;
+        // Generate a user prompt title
+        const aiTitle = yield model.generateContent(titleData);
+        title = aiTitle.response.text();
+    }
+    catch (error) {
+        if (error) {
+            title = "An error occured. Please check your internet connection!";
+        }
+        // console.error(error.message);
+    }
+    return title;
+});
+export { genAIEndPoint, genAITitleEndPoint };
 //# sourceMappingURL=geminiModelSetup.js.map

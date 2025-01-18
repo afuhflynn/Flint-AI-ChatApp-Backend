@@ -32,19 +32,23 @@ export const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, func
                 .json({ success: false, message: "User already exists" });
         // Hash the password
         const hashedPassword = yield bcrypt.hash(password, 10);
+        // Generate a new verification token
+        const token = yield crypto.randomBytes(60).toString("hex");
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        // Generate new verification code
         const verificationCode = generateVerificationCode();
-        // Verification expires at date
-        const verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
         const newUserName = username.trim(); // Remove all spaces in the username and convert it to a single word
         const newUser = new User({
             newUserName,
             password: hashedPassword,
             email,
             verificationCode,
-            verificationCodeExpires,
+            verificationCodeExpires: expiresAt,
+            verificationToken: token,
+            verificationTokenExpiresAt: expiresAt,
         });
         yield newUser.save();
-        yield sendVerificationEmail(verificationCode, email, username, {
+        yield sendVerificationEmail(verificationCode, email, username, token, {
             "X-Category": "Verification Email",
         });
         return res.status(201).json({
@@ -177,7 +181,7 @@ export const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0,
         let userId = "";
         if ((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id)
             userId = req.session.user.id;
-        const { username, password, avatarUrl } = req.body;
+        const { username, password, avatarUrl, firstName, lastName } = req.body;
         // Post avatarUrl to cloudinary before storing in db
         let newAvatarUrl = "";
         (function () {
@@ -189,16 +193,21 @@ export const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0,
                 });
                 // Upload user avatar image
                 const uploadResult = yield cloudinary.uploader.upload(avatarUrl, {
-                    public_id: "Flint ai user avatar",
+                    public_id: `Flint ai user ${username} profile avatar`,
                 });
                 newAvatarUrl = uploadResult.url;
             });
         });
-        const updatedData = { username };
+        const updatedData = { username }; // Updated user data object
         if (password)
             updatedData.password = yield bcrypt.hash(password, 10);
         if (avatarUrl)
             updatedData.avatarUrl = newAvatarUrl;
+        if (firstName)
+            updatedData.name.firstName = firstName;
+        if (lastName)
+            updatedData.name.firstName = lastName;
+        // Fetch user and updata if the fields were provided
         const updatedUser = yield User.findByIdAndUpdate(userId, updatedData, {
             new: true,
         });
@@ -213,7 +222,7 @@ export const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0,
     }
 });
 // Verify user account
-export const verifyUserAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+export const verifyUserAccountWithCode = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.body;
     if (!code)
         return res
@@ -232,11 +241,49 @@ export const verifyUserAccount = (req, res) => __awaiter(void 0, void 0, void 0,
                 message: "Invalid or expired verification code",
             });
         user.isVerified = true;
+        user.verificationCode = "";
+        user.verificationCodeExpires = new Date(Date.now());
+        user.verificationToken = "";
+        user.verificationTokenExpires = new Date(Date.now());
         yield user.save();
         yield sendWelcomeEmail(user.email, user.username, {
             "X-Category": "Welcome Email",
         });
-        return res.status(200).json({ message: "User account verified" });
+        return res.status(200).json({ message: "Account verified successfully" });
+    }
+    catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+});
+// Verify user account
+export const verifyUserAccountWithToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { token } = req.params;
+    if (!token)
+        return res
+            .status(400)
+            .json({ success: false, message: "Expired verification token" });
+    try {
+        // Find for a user with verification code that has not expired
+        const user = yield User.findOne({
+            verificationToken: token,
+            isVerified: false,
+            verificationTokenExpires: { $gt: new Date(Date.now()) },
+        });
+        if (!user)
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired verification token",
+            });
+        user.isVerified = true;
+        user.verificationCode = "";
+        user.verificationCodeExpires = new Date(Date.now());
+        user.verificationToken = "";
+        user.verificationTokenExpires = new Date(Date.now());
+        yield user.save();
+        yield sendWelcomeEmail(user.email, user.username, {
+            "X-Category": "Welcome Email",
+        });
+        return res.status(200).json({ message: "Account verified successfully" });
     }
     catch (error) {
         return res.status(500).json({ message: "Internal server error" });
@@ -260,12 +307,17 @@ export const resendVerificationCode = (req, res) => __awaiter(void 0, void 0, vo
                 .json({ success: false, message: "User not found" });
         if (user.isVerified)
             return res.status(400).json({ success: false, message: "User verified" });
+        // Generate a new verification token
+        const token = yield crypto.randomBytes(60).toString("hex");
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
         // Generate new verification code
         const verificationCode = generateVerificationCode();
         user.verificationCode = verificationCode;
-        user.verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        user.verificationCodeExpires = expiresAt;
+        user.verificationToken = token;
+        user.verificationTokenExpires = expiresAt;
         yield user.save();
-        yield sendVerificationEmail(verificationCode, email, user.username, {
+        yield sendVerificationEmail(verificationCode, email, user.username, token, {
             "X-Category": "Verification Email",
         });
         return res.status(200).json({ message: "Verification email sent" });
