@@ -1,10 +1,8 @@
-# Welcome to the Flint AI ChatApp frontend
+# Welcome to the Flint-AI-ChatApp Backend
 
 <div align="center">
   <img src="./public/flintai-logo.png" alt="Flint ai logo" width="200"/>
 </div>
-
-# Welcome to the Flint-AI-ChatApp Backend!
 
 This is the backend service for the Flint-AI-ChatApp. It handles message processing, and interaction with the AI model, User auth and more. The project was created using the Google Gemini API.
 
