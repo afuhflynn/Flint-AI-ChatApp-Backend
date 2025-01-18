@@ -223,7 +223,7 @@ Stay tuned for updates on these features!
 
 ## License
 
-This project is proprietary and subject to the terms described in the [LICENSE](./LICENSE.txt) file. Unauthorized copying, distribution, or modification of this software is strictly prohibited.
+This project is proprietary and subject to the terms described in the [LICENSE TEXT FILE](./LICENSE.txt) or [LICENSE MARKDOWN FILE](./LICENSE.md) file. Unauthorized copying, distribution, or modification of this software is strictly prohibited.
 
 
 ## Contributing
