@@ -1,0 +1,19 @@
+[INFO] 2023-10-01 12:00:00 - Server started on port 3000
+
+[INFO] 2023-10-01 12:01:00 - User login attempt - Username: johndoe
+
+[ERROR] 2023-10-01 12:02:00 - Failed login attempt - Username: johndoe - Reason: Incorrect password
+
+[INFO] 2023-10-01 12:03:00 - User registered - Username: janedoe - Email: janedoe@example.com
+
+[INFO] 2023-10-01 12:04:00 - User profile updated - Username: johndoe
+
+[ERROR] 2023-10-01 12:05:00 - Database connection error - Reason: Connection timeout
+
+[INFO] 2023-10-01 12:06:00 - User logout - Username: janedoe
+
+[INFO] 2023-10-01 12:07:00 - Password reset request - Email: johndoe@example.com
+
+[INFO] 2023-10-01 12:08:00 - Password reset successful - Username: johndoe
+
+[INFO] 2023-10-01 12:09:00 - Server shutdown initiated
