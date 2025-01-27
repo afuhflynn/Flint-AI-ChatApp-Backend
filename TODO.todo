@@ -3,6 +3,7 @@
 ## General
 - [ ] Review and update README.md with project details and setup instructions
 - [ ] Ensure all dependencies are up to date
+- [ ] Display a popup in chatroom that reminds the user to signup for an account or remain signed out
 
 ## Server
 - [ ] Implement authentication middleware in `server.js`
