@@ -1,12 +1,31 @@
 import { Document } from "mongoose";
 import express from "express";
 // Interface for User Document
+
+// Create chat schema
+export interface ChatSchemaTypes extends Document {
+  userID: string;
+  userName: string;
+  chats: {
+    id: string;
+    title: string;
+    createdAt: Date;
+    updatedAt: Date;
+    conversations: {
+      role: string;
+      parts: {
+        text: string;
+        image: string;
+      }[];
+    }[];
+  }[];
+}
 export interface UserSchemaTypes extends Document {
   username: string;
   email: string;
   password: string;
   githubId?: string;
-  role: "user" | "admin";
+  role: string;
   isVerified: boolean;
   hasTakenTour: boolean;
   bio: string;
@@ -26,20 +45,15 @@ export interface UserSchemaTypes extends Document {
   refreshTokenExpires?: Date;
   accountDeleteToken?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
-  chats?: {
+  chats: {
     id: string;
-    title: string | any;
+    title: string;
     createdAt: Date;
-    updatedAt?: Date;
-    chat: {
-      id: string;
-      user: string;
-      bot: string | any;
-    }[];
+    updatedAt: Date;
   }[];
   preferences?: {
     avatarUrl: string;
-    theme: "light" | "dark";
+    theme: string;
   };
 }
 
@@ -111,4 +125,9 @@ export interface GitHubProfileTypes {
     following: number; // Number of following
     [key: string]: any; // Additional properties from GitHub API
   };
+}
+
+// Create a custom request interface with user credentials for validationa usage in controllers
+export interface RequestWithUser extends express.Request {
+  user: UserSchemaTypes;
 }

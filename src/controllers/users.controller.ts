@@ -1,8 +1,7 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import crypto from "node:crypto";
-import { CustomRequest } from "../middlewares/verifyTokens.js";
 import { v2 as cloudinary } from "cloudinary";
 import {
   sendAccountDeleteAdminNotificationEmail,
@@ -13,25 +12,9 @@ import {
   sendWelcomeEmail,
 } from "../utils/Emails/send.emails.js";
 import generateVerificationCode from "../utils/generateVerificationCode.js";
-import { UserSchemaTypes } from "../TYPES.js";
+import { RequestWithUser } from "../TYPES.js";
 import generateResetToken from "../utils/generateResetToken.js";
 import { format } from "date-fns";
-
-declare module "express-session" {
-  interface SessionData {
-    visited?: boolean;
-    userId: "";
-    user: UserSchemaTypes | null;
-  }
-
-  interface SessionStore {
-    // session store interface
-    get: (
-      sid: string,
-      callback: (err: any, session: Session | null) => void
-    ) => void;
-  }
-}
 
 // Register user
 export const registerUser = async (req: Request, res: Response) => {
@@ -80,20 +63,37 @@ export const registerUser = async (req: Request, res: Response) => {
 };
 
 // Login a user
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (
+  req: Request & RequestWithUser,
+  res: Response
+) => {
   try {
     // Send welcome email since there is passport authentication
-    if (req.session.user?.email && req.session.user?.username)
-      //send notification email
-      await sendNotificationEmail(
-        "Account Login",
-        req.session.user.email,
-        req.session.user.username,
-        new Date().toLocaleDateString(),
-        `${(req.session.user.username, req.session.user.email)}`,
-        { "X-Category": "Login Notification" }
-      );
-    req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+    if (req.isAuthenticated() && req.user.email && req.user.username) {
+      const loggedInUser = await User.findOne({
+        _id: req.user._id,
+        email: req.user.email,
+      });
+      if (loggedInUser) {
+        //send notification email
+        await sendNotificationEmail(
+          "Account Login",
+          loggedInUser.email,
+          loggedInUser.username,
+          new Date().toLocaleDateString(),
+          `${loggedInUser.username}, ${loggedInUser.email}`,
+          { "X-Category": "Login Notification" }
+        );
+
+        // Save a new access token on client browser
+        res.cookie("token", loggedInUser.accessToken, {
+          httpOnly: true,
+          sameSite: "strict",
+          secure: true,
+          expires: loggedInUser.accessTokenExpires,
+        });
+      }
+    }
     return res.status(200).json({ message: "Logged in successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
@@ -101,28 +101,25 @@ export const loginUser = async (req: Request, res: Response) => {
 };
 
 // Logout user
-export const logoutUser = async (req: Request, res: Response) => {
+export const logoutUser = async (
+  req: Request & RequestWithUser,
+  res: Response
+) => {
   try {
-    req.session.destroy(async (error) => {
-      if (error) {
-        return res.status(500).json({ message: "Internal server error" });
-      }
-      // send account notificaiton email
-      if (req.session.user?.email && req.session.user?.username) {
-        console.log(req.session.user);
-        await sendNotificationEmail(
-          "Account Logout",
-          req.session.user.email,
-          req.session.user.username,
-          new Date().toLocaleDateString(),
-          `${(req.session.user.username, req.session.user.email)}`,
-          { "X-Category": "Logout Notification" }
-        );
-      }
-      // Clear cookies
-      res.clearCookie("connect.sid");
-      return res.status(200).json({ message: "Logged out successfully" });
-    });
+    // send account notificaiton email
+    if (req.isAuthenticated() && req.user.email && req.user.username) {
+      await sendNotificationEmail(
+        "Account Logout",
+        req.user.email,
+        req.user.username,
+        new Date().toLocaleDateString(),
+        `${(req.user.username, req.user.email)}`,
+        { "X-Category": "Logout Notification" }
+      );
+    }
+    // Clear cookies
+    res.clearCookie("token");
+    return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -130,13 +127,11 @@ export const logoutUser = async (req: Request, res: Response) => {
 
 // Send user account delete request for warning
 export const sendDeleteAccountRequest = async (
-  req: Request & CustomRequest,
+  req: Request & RequestWithUser,
   res: Response
 ) => {
   try {
-    let userId: string = "";
-    if (req.session.user?.id) userId = req.session.user.id;
-    const user = await User.findById(userId);
+    const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -149,6 +144,7 @@ export const sendDeleteAccountRequest = async (
       `${process.env.CLIENT_URL}/delete-account/${user._id}/${token}`,
       { "X-Category": "Account Delete Email" }
     );
+
     return res.status(200).json({ message: "Account deletion request sent" });
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
@@ -157,10 +153,10 @@ export const sendDeleteAccountRequest = async (
 
 // Delete user account
 export const deleteUserAccount = async (
-  req: Request & CustomRequest,
+  req: Request & RequestWithUser,
   res: Response
 ) => {
-  const { userId, token } = req.params;
+  const { token } = req.params;
   const { message } = req.body;
   // TODO: Send the admin an email containing and explaining users reason for account deletion
   // Check if user provided a message
@@ -170,42 +166,33 @@ export const deleteUserAccount = async (
       .json({ message: "Must provide a message to proceed!" });
   try {
     const deletedUser = await User.deleteOne({
-      _id: userId,
+      _id: req.user.id,
       accountDeleteToken: token,
     });
-    if (!deletedUser) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    // Send account delete notification email
-    if (req.session.user) {
-      // Send user account delete email
-      await sendNotificationEmail(
-        "Account Deletion",
-        req.session.user.email,
-        req.session.user.username,
-        format(new Date(), "YYYY:MM:dd"),
-        `${(req.session.user.username, req.session.user.email)}`,
-        { "X-Category": "Account Deletion Notification" }
-      );
+    if (!deletedUser) return res.status(404).json({ error: "User not found" });
 
-      // Send email to notify admin that a user account has been deleted
-      await sendAccountDeleteAdminNotificationEmail(
-        req.session.user.email,
-        req.session.user.username,
-        "User account deleted",
-        message,
-        new Date().toLocaleDateString(),
-        { "X-Category": "Account deletion" }
-      );
-    }
+    // Send user account delete email
+    await sendNotificationEmail(
+      "Account Deletion",
+      req.user.email,
+      req.user.username,
+      format(new Date(), "YYYY:MM:dd"),
+      `${(req.user.username, req.user.email)}`,
+      { "X-Category": "Account Deletion Notification" }
+    );
 
-    //Delete the user session from the express-session object
-    req.session.destroy((error) => {
-      if (error) {
-        return res.status(500).json({ message: "Internal server error" });
-      }
-    });
-    res.clearCookie("connect.sid");
+    // Send email to notify admin that a user account has been deleted
+    await sendAccountDeleteAdminNotificationEmail(
+      req.user.email,
+      req.user.username,
+      "User account deleted",
+      message,
+      new Date().toLocaleDateString(),
+      { "X-Category": "Account deletion" }
+    );
+
+    res.clearCookie("token");
+
     return res
       .status(200)
       .json({ message: "User account deleted successfully" });
@@ -216,13 +203,11 @@ export const deleteUserAccount = async (
 
 // Get user profile
 export const getUserProfile = async (
-  req: Request & CustomRequest,
+  req: Request & RequestWithUser,
   res: Response
 ) => {
   try {
-    let userId: string = "";
-    if (req.session.user?.id) userId = req.session.user.id;
-    const user = await User.findById(userId);
+    const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(403).json({ error: "User not found" });
     }
@@ -234,12 +219,10 @@ export const getUserProfile = async (
 
 // Update user profile
 export const updateUserProfile = async (
-  req: Request & CustomRequest,
+  req: Request & RequestWithUser,
   res: Response
 ) => {
   try {
-    let userId: string = "";
-    if (req.session.user?.id) userId = req.session.user.id;
     const { username, password, avatarUrl, firstName, lastName } = req.body;
     // Post avatarUrl to cloudinary before storing in db
     let newAvatarUrl: string = "";
@@ -264,7 +247,7 @@ export const updateUserProfile = async (
     if (lastName) updatedData.name.firstName = lastName;
 
     // Fetch user and updata if the fields were provided
-    const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, updatedData, {
       new: true,
     });
     if (!updatedUser) {
@@ -462,34 +445,37 @@ export const resetPassword = async (req: Request, res: Response) => {
 };
 
 // Check auth state
-export const checkAuthState = async (req: Request, res: Response) => {
+export const checkAuthState = async (
+  req: Request & RequestWithUser,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    let userId: string = "";
-    if (req.session.user?.id) userId = req.session.user.id;
-    const user = await User.findById(userId);
-    if (!user) {
+    const user = await User.findById(req.user.id);
+    if (!user)
       return res
         .status(401)
         .json({ success: false, message: "User not found" });
-    }
-    req.user = req.session.user as UserSchemaTypes;
-    return res.status(200).json({ success: true, user });
+    if (req.isAuthenticated() && !user) next();
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 // Handle github login
-export const githubLogin = async (req: Request, res: Response) => {
+export const githubLogin = async (
+  req: Request & RequestWithUser,
+  res: Response
+) => {
   try {
-    if (req.session.user?.email && req.session.user?.username) {
+    if (req.user.email && req.user.username) {
       //send notification email
       await sendNotificationEmail(
         "Account Login Via Github",
-        req.session.user.email,
-        req.session.user.username,
+        req.user.email,
+        req.user.username,
         new Date().toLocaleDateString(),
-        `${(req.session.user.username, req.session.user.email)}`,
+        `${(req.user.username, req.user.email)}`,
         { "X-Category": "Login Notification" }
       );
     } else {

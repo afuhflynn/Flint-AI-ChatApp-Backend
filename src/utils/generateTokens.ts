@@ -5,9 +5,9 @@ import { config } from "dotenv";
 config();
 
 const generateTokens = async (
+  id: string | unknown,
   email: string,
   username: string,
-  id: string | unknown,
   userRole: string
 ): Promise<{
   accessToken: string;
@@ -26,13 +26,13 @@ const generateTokens = async (
   }
 
   const accessToken = await jwt.sign(
-    { email: email, username: username, id: id, userRole: userRole },
+    { id: id, email: email, username: username, role: userRole },
     privateAccessKey,
     { algorithm: "HS256", expiresIn: "1h" }
   );
 
   const refreshToken = await jwt.sign(
-    { email: email, username: username, id: id, userRole: userRole },
+    { id: id, email: email, username: username, role: userRole },
     privateRefreshKey,
     { algorithm: "HS256", expiresIn: "30d" }
   );

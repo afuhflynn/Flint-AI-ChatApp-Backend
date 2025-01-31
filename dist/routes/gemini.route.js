@@ -8,16 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { Router } from "express";
-import { getGeminiResponse } from "../controllers/gemini.controller.js";
+import { handleGeminiChats, handleUserChats, handleSaveGeminiChats, } from "../controllers/gemini.controller.js";
 const geminiRouter = Router();
-geminiRouter.post("/api/ai", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield getGeminiResponse(req, res);
-    }
-    catch (error) {
-        console.error("Error in gemini route:", error);
-        res.status(500).json({ error: "Internal server error" });
-    }
-}));
+geminiRouter.post("/api/ai", (req, res) => {
+    const handleChats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            yield handleUserChats(req, res);
+            yield handleGeminiChats(req, res, req.body.prompt);
+            yield handleSaveGeminiChats(req, res, req.body.chatID);
+        }
+        catch (error) {
+            console.error("Error in gemini route:", error);
+            res.status(500).json({ error: "Internal server error" });
+        }
+    });
+    handleChats(req, res);
+});
 export default geminiRouter;
 //# sourceMappingURL=gemini.route.js.map

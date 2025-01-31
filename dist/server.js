@@ -1,7 +1,6 @@
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
-import session from "express-session";
 import passport from "passport";
 import cookieParser from "cookie-parser";
 import { config } from "dotenv";
@@ -12,8 +11,8 @@ import mongoose from "mongoose";
 import path from "node:path";
 import userRouter from "./routes/users.router.js";
 import "./config/passportJs.js";
-import { updateUserSession } from "./middlewares/updateUserSession.js";
 import { githubLogin } from "./controllers/users.controller.js";
+import logger from "./utils/loger.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Initialize env vars
@@ -23,19 +22,6 @@ connectDB();
 // Create a new express application instance
 const app = express();
 const port = process.env.PORT || 3000;
-// Express session setup
-app.use(session({
-    secret: process.env.EXPRESS_SESSION_SECRET,
-    saveUninitialized: false,
-    resave: false,
-    cookie: {
-        httpOnly: true,
-        sameSite: "strict",
-        signed: true,
-        secure: process.env.APP_STATUS === "production",
-        maxAge: Date.now() + 60 * 60 * 60 * 1000, // 1 hour
-    },
-}));
 // Express middleware setup
 app.use(cookieParser());
 app.use(express.json());
@@ -47,17 +33,6 @@ app.use(cors({
 app.use(express.urlencoded({ extended: true }));
 app.set("trust proxy", 1);
 app.use(morgan("dev"));
-// Middleware to initialize session properties
-const sessionInitializer = (req, _, next) => {
-    if (!req.session.visited || !req.session.userId || !req.session.user) {
-        req.session.visited = false;
-        req.session.userId = "";
-        req.session.user = null;
-    }
-    next();
-};
-// Apply session initializer middleware
-app.use(sessionInitializer);
 // Passport js init
 app.use(passport.initialize());
 app.use(passport.session());
@@ -69,22 +44,18 @@ app.get("/api/auth/users/github", passport.authenticate("github", {
 }));
 app.get("/auth/github/callback", passport.authenticate("github", {
     failureRedirect: `${process.env.CLIENT_URL}/log-in`,
-}), updateUserSession, (req, res) => {
+}), (req, res) => {
     githubLogin(req, res);
 });
 // Route handlers
 app.use("/assist", geminiRouter);
 app.use("/api/auth/users", userRouter);
-app.get("/", (req, res) => {
-    req.sessionStore.get(req.sessionID, (error, sessionData) => {
-        if (error)
-            console.log(error);
-        console.log(sessionData);
-    });
+app.get("/", (_, res) => {
     res.send("Hello, world!");
 });
 // Target wrong routes
 app.get("*", (req, res) => {
+    logger.error(`404: ${req.url}`);
     if (req.accepts("json"))
         res.status(404).json({ success: false, message: "Page not found!" });
     if (req.accepts("text"))

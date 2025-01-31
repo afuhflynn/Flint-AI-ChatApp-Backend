@@ -84,29 +84,14 @@ const UserSchema = new mongoose.Schema({
             default: "light",
         },
     },
-    chats: {
-        type: Array,
-        required: true,
-        default: [
-            {
-                id: String,
-                title: String,
-                createdAt: Date,
-                updatedAt: Date,
-                chat: {
-                    type: Array,
-                    required: false,
-                    default: [
-                        {
-                            id: String,
-                            user: String,
-                            bot: String,
-                        },
-                    ],
-                },
-            },
-        ],
-    },
+    chats: [
+        {
+            id: String,
+            title: String,
+            createdAt: Date,
+            updatedAt: Date,
+        },
+    ],
 }, {
     timestamps: true, // Automatically add createdAt and updatedAt fields
 });

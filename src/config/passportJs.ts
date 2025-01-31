@@ -37,9 +37,9 @@ const localVerifyCallback: VerifyFunction = async (
       accessTokenExpiresAt,
       refreshTokenExpiresAt,
     } = await generateTokens(
+      foundUser._id,
       foundUser.email,
       username,
-      foundUser._id,
       foundUser.role
     );
     foundUser.accessToken = accessToken;
