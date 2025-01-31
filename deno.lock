@@ -5,7 +5,6 @@
     "npm:@types/bcrypt@^5.0.2": "5.0.2",
     "npm:@types/cookie-parser@^1.4.8": "1.4.8_@types+express@5.0.0",
     "npm:@types/cors@^2.8.17": "2.8.17",
-    "npm:@types/express-session@^1.18.1": "1.18.1",
     "npm:@types/express@5": "5.0.0",
     "npm:@types/jsonwebtoken@^9.0.7": "9.0.7",
     "npm:@types/morgan@^1.9.9": "1.9.9",
@@ -143,12 +142,6 @@
         "@types/qs",
         "@types/range-parser",
         "@types/send"
-      ]
-    },
-    "@types/express-session@1.18.1": {
-      "integrity": "sha512-S6TkD/lljxDlQ2u/4A70luD8/ZxZcrU5pQwI1rVXCiaVIywoFgbA+PIUNDjPhQpPdK0dGleLtYc/y7XWBfclBg==",
-      "dependencies": [
-        "@types/express"
       ]
     },
     "@types/express@5.0.0": {
@@ -1583,7 +1576,6 @@
         "npm:@types/bcrypt@^5.0.2",
         "npm:@types/cookie-parser@^1.4.8",
         "npm:@types/cors@^2.8.17",
-        "npm:@types/express-session@^1.18.1",
         "npm:@types/express@5",
         "npm:@types/jsonwebtoken@^9.0.7",
         "npm:@types/morgan@^1.9.9",

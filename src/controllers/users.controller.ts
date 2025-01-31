@@ -469,15 +469,29 @@ export const githubLogin = async (
 ) => {
   try {
     if (req.user.email && req.user.username) {
-      //send notification email
-      await sendNotificationEmail(
-        "Account Login Via Github",
-        req.user.email,
-        req.user.username,
-        new Date().toLocaleDateString(),
-        `${(req.user.username, req.user.email)}`,
-        { "X-Category": "Login Notification" }
-      );
+      // Send welcome email since there is passport authentication
+      const loggedInUser = await User.findOne({
+        _id: req.user._id,
+        email: req.user.email,
+      });
+      if (loggedInUser) {
+        //send notification email
+        await sendNotificationEmail(
+          "Account Login Via Github",
+          req.user.email,
+          req.user.username,
+          new Date().toLocaleDateString(),
+          `${(req.user.username, req.user.email)}`,
+          { "X-Category": "Login Notification" }
+        );
+        // Save a new access token on client browser
+        res.cookie("token", loggedInUser.accessToken, {
+          httpOnly: true,
+          sameSite: "strict",
+          secure: true,
+          expires: loggedInUser.accessTokenExpires,
+        });
+      }
     } else {
       return res.status(401).json({ message: "Unauthorized" });
     }

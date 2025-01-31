@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
@@ -13,6 +22,7 @@ import userRouter from "./routes/users.router.js";
 import "./config/passportJs.js";
 import { githubLogin } from "./controllers/users.controller.js";
 import logger from "./utils/loger.js";
+import User from "./models/user.model.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Initialize env vars
@@ -35,17 +45,30 @@ app.set("trust proxy", 1);
 app.use(morgan("dev"));
 // Passport js init
 app.use(passport.initialize());
-app.use(passport.session());
-// Routes to create user account for github and locally
-app.get("/api/auth/users/github", passport.authenticate("github", {
-    scope: ["user:email"],
-    successRedirect: `${process.env.CLIENT_URL}`, // Redirect to frontend react home page
-    failureRedirect: `${process.env.CLIENT_URL}/log-in`, // Redirect to frontend react login page
-}));
-app.get("/auth/github/callback", passport.authenticate("github", {
-    failureRedirect: `${process.env.CLIENT_URL}/log-in`,
-}), (req, res) => {
-    githubLogin(req, res);
+// **GitHub Authentication Route**
+app.get("/api/auth/users/github", passport.authenticate("github", { scope: ["user:email"], session: false }));
+// **GitHub OAuth Callback Route**
+app.get("/auth/github/callback", (req, res, next) => {
+    passport.authenticate("github", { session: false }, (err, user, _) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            if (err)
+                return next(err);
+            if (!user) {
+                return res.redirect(`${process.env.CLIENT_URL}/log-in?error=unauthorized`);
+            }
+            const foundUser = yield User.findOne({
+                githubId: user.githubId,
+            });
+            if (foundUser) {
+                return res.redirect(`${process.env.CLIENT_URL}/auth-success?token=${foundUser.accessToken}`);
+            }
+            // If the user is new, create an account and generate a JWT
+            yield githubLogin(req, res);
+        }
+        catch (error) {
+            next(error);
+        }
+    }))(req, res, next);
 });
 // Route handlers
 app.use("/assist", geminiRouter);
@@ -53,13 +76,13 @@ app.use("/api/auth/users", userRouter);
 app.get("/", (_, res) => {
     res.send("Hello, world!");
 });
-// Target wrong routes
+// Handle 404 errors
 app.get("*", (req, res) => {
     logger.error(`404: ${req.url}`);
     if (req.accepts("json"))
-        res.status(404).json({ success: false, message: "Page not found!" });
+        return res.status(404).json({ success: false, message: "Page not found!" });
     if (req.accepts("text"))
-        res.status(404).send("Page not found!");
+        return res.status(404).send("Page not found!");
     if (req.accepts("html"))
         return res
             .status(404)

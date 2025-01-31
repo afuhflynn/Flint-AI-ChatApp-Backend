@@ -26,7 +26,7 @@ userRouter.post("/sign-up", (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.post("/sign-in", passport.authenticate("local"), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.post("/sign-in", passport.authenticate("local", { session: false }), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield loginUser(req, res);
     }

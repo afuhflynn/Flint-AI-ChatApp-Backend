@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import passport from "passport";
@@ -14,6 +14,7 @@ import userRouter from "./routes/users.router.js";
 import "./config/passportJs.js";
 import { githubLogin } from "./controllers/users.controller.js";
 import logger from "./utils/loger.js";
+import User from "./models/user.model.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,15 +24,6 @@ config();
 
 // Connect to MongoDB
 connectDB();
-
-// Extend express-session's SessionData
-declare module "express-session" {
-  interface SessionData {
-    visited?: boolean;
-    userId: "";
-    user: UserSchemaTypes | null;
-  }
-}
 
 // Create a new express application instance
 const app = express();
@@ -53,27 +45,49 @@ app.use(morgan("dev"));
 
 // Passport js init
 app.use(passport.initialize());
-app.use(passport.session());
 
-// Routes to create user account for github and locally
+// **GitHub Authentication Route**
 app.get(
   "/api/auth/users/github",
-  passport.authenticate("github", {
-    scope: ["user:email"],
-    successRedirect: `${process.env.CLIENT_URL}`, // Redirect to frontend react home page
-    failureRedirect: `${process.env.CLIENT_URL}/log-in`, // Redirect to frontend react login page
-  })
+  passport.authenticate("github", { scope: ["user:email"], session: false })
 );
 
+// **GitHub OAuth Callback Route**
 app.get(
   "/auth/github/callback",
-  passport.authenticate("github", {
-    failureRedirect: `${process.env.CLIENT_URL}/log-in`,
-  }),
-  (req: Request, res: Response) => {
-    githubLogin(req as Request & RequestWithUser, res);
+  (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate(
+      "github",
+      { session: false },
+      async (err: any, user: UserSchemaTypes, _: any) => {
+        try {
+          if (err) return next(err);
+          if (!user) {
+            return res.redirect(
+              `${process.env.CLIENT_URL}/log-in?error=unauthorized`
+            );
+          }
+
+          const foundUser = await User.findOne({
+            githubId: (user as any).githubId,
+          });
+
+          if (foundUser) {
+            return res.redirect(
+              `${process.env.CLIENT_URL}/auth-success?token=${foundUser.accessToken}`
+            );
+          }
+
+          // If the user is new, create an account and generate a JWT
+          await githubLogin(req as Request & RequestWithUser, res);
+        } catch (error) {
+          next(error);
+        }
+      }
+    )(req, res, next);
   }
 );
+
 // Route handlers
 app.use("/assist", geminiRouter);
 app.use("/api/auth/users", userRouter);
@@ -82,12 +96,12 @@ app.get("/", (_: Request, res: Response) => {
   res.send("Hello, world!");
 });
 
-// Target wrong routes
-app.get("*", (req, res) => {
+// Handle 404 errors
+app.get("*", (req: Request, res: Response) => {
   logger.error(`404: ${req.url}`);
   if (req.accepts("json"))
-    res.status(404).json({ success: false, message: "Page not found!" });
-  if (req.accepts("text")) res.status(404).send("Page not found!");
+    return res.status(404).json({ success: false, message: "Page not found!" });
+  if (req.accepts("text")) return res.status(404).send("Page not found!");
   if (req.accepts("html"))
     return res
       .status(404)

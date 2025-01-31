@@ -37,7 +37,7 @@ userRouter.post("/sign-up", async (req: Request, res: Response) => {
 
 userRouter.post(
   "/sign-in",
-  passport.authenticate("local"),
+  passport.authenticate("local", { session: false }),
   async (req: Request, res: Response) => {
     try {
       await loginUser(req as Request & RequestWithUser, res);
