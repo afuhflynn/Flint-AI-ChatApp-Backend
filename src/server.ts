@@ -9,7 +9,7 @@ import geminiRouter from "./routes/gemini.route.js";
 import connectDB from "./config/db/connectDB.js";
 import mongoose from "mongoose";
 import path from "node:path";
-import { UserSchemaTypes } from "./TYPES.js";
+import { RequestWithUser, UserSchemaTypes } from "./TYPES.js";
 import userRouter from "./routes/users.router.js";
 import "./config/passportJs.js";
 import { githubLogin } from "./controllers/users.controller.js";
@@ -71,7 +71,7 @@ app.get(
     failureRedirect: `${process.env.CLIENT_URL}/log-in`,
   }),
   (req: Request, res: Response) => {
-    githubLogin(req, res);
+    githubLogin(req as Request & RequestWithUser, res);
   }
 );
 // Route handlers

@@ -30,7 +30,7 @@ const localVerifyCallback = (username, password, done) => __awaiter(void 0, void
         if (!isMatch)
             return done(null, false, { message: "Invalid credentials" });
         foundUser.isVerified = true;
-        const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, } = yield generateTokens(foundUser.email, username, foundUser._id, foundUser.role);
+        const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, } = yield generateTokens(foundUser._id, foundUser.email, username, foundUser.role);
         foundUser.accessToken = accessToken;
         foundUser.refreshToken = refreshToken;
         foundUser.accessTokenExpires = accessTokenExpiresAt;

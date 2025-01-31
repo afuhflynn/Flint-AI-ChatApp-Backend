@@ -13,7 +13,7 @@ dotenv.config();
 import User from "../models/user.model.js";
 const verifyTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const sentCookie = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.accessToken;
+    const sentCookie = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.token;
     try {
         if (!sentCookie) {
             res.status(401).json({
@@ -23,14 +23,8 @@ const verifyTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             return;
         }
         const foundUser = yield User.findOne({
-            tokens: {
-                $elemMatch: {
-                    type: "access",
-                    token: sentCookie,
-                    expiresAt: { $gt: new Date() },
-                },
-            },
-            isActive: true,
+            accessToken: sentCookie,
+            accessTokenExpires: { $gt: Date.now() },
         });
         if (!foundUser) {
             res.status(403).json({
@@ -42,22 +36,20 @@ const verifyTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         jwt.verify(sentCookie, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, decoded) => {
             if (error) {
                 res.status(403).json({
-                    success: false,
                     message: "Invalid or expired token",
                 });
                 return;
             }
-            req.id = decoded.id;
-            req.username = decoded.username;
-            req.email = decoded.email;
-            req.role = decoded.userRole;
+            req.user.id = decoded.id;
+            req.user.username = decoded.username;
+            req.user.email = decoded.email;
+            req.user.role = decoded.role;
             next();
         });
     }
     catch (error) {
         const err = error;
         res.status(500).json({
-            success: false,
             message: err.message || "Internal server error",
         });
     }

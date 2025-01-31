@@ -61,13 +61,25 @@ export const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 // Login a user
 export const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
     try {
         // Send welcome email since there is passport authentication
-        if (((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.email) && ((_b = req.session.user) === null || _b === void 0 ? void 0 : _b.username))
-            //send notification email
-            yield sendNotificationEmail("Account Login", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Login Notification" });
-        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+        if (req.isAuthenticated() && req.user.email && req.user.username) {
+            const loggedInUser = yield User.findOne({
+                _id: req.user._id,
+                email: req.user.email,
+            });
+            if (loggedInUser) {
+                //send notification email
+                yield sendNotificationEmail("Account Login", loggedInUser.email, loggedInUser.username, new Date().toLocaleDateString(), `${loggedInUser.username}, ${loggedInUser.email}`, { "X-Category": "Login Notification" });
+                // Save a new access token on client browser
+                res.cookie("token", loggedInUser.accessToken, {
+                    httpOnly: true,
+                    sameSite: "strict",
+                    secure: true,
+                    expires: loggedInUser.accessTokenExpires,
+                });
+            }
+        }
         return res.status(200).json({ message: "Logged in successfully" });
     }
     catch (error) {
@@ -77,20 +89,13 @@ export const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
 // Logout user
 export const logoutUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        req.session.destroy((error) => __awaiter(void 0, void 0, void 0, function* () {
-            var _a, _b;
-            if (error) {
-                return res.status(500).json({ message: "Internal server error" });
-            }
-            // send account notificaiton email
-            if (((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.email) && ((_b = req.session.user) === null || _b === void 0 ? void 0 : _b.username)) {
-                console.log(req.session.user);
-                yield sendNotificationEmail("Account Logout", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Logout Notification" });
-            }
-            // Clear cookies
-            res.clearCookie("connect.sid");
-            return res.status(200).json({ message: "Logged out successfully" });
-        }));
+        // send account notificaiton email
+        if (req.isAuthenticated() && req.user.email && req.user.username) {
+            yield sendNotificationEmail("Account Logout", req.user.email, req.user.username, new Date().toLocaleDateString(), `${(req.user.username, req.user.email)}`, { "X-Category": "Logout Notification" });
+        }
+        // Clear cookies
+        res.clearCookie("token");
+        return res.status(200).json({ message: "Logged out successfully" });
     }
     catch (error) {
         return res.status(500).json({ message: "Internal server error" });
@@ -98,12 +103,8 @@ export const logoutUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
 });
 // Send user account delete request for warning
 export const sendDeleteAccountRequest = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     try {
-        let userId = "";
-        if ((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id)
-            userId = req.session.user.id;
-        const user = yield User.findById(userId);
+        const user = yield User.findById(req.user.id);
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
@@ -119,7 +120,7 @@ export const sendDeleteAccountRequest = (req, res) => __awaiter(void 0, void 0, 
 });
 // Delete user account
 export const deleteUserAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId, token } = req.params;
+    const { token } = req.params;
     const { message } = req.body;
     // TODO: Send the admin an email containing and explaining users reason for account deletion
     // Check if user provided a message
@@ -129,26 +130,16 @@ export const deleteUserAccount = (req, res) => __awaiter(void 0, void 0, void 0,
             .json({ message: "Must provide a message to proceed!" });
     try {
         const deletedUser = yield User.deleteOne({
-            _id: userId,
+            _id: req.user.id,
             accountDeleteToken: token,
         });
-        if (!deletedUser) {
+        if (!deletedUser)
             return res.status(404).json({ error: "User not found" });
-        }
-        // Send account delete notification email
-        if (req.session.user) {
-            // Send user account delete email
-            yield sendNotificationEmail("Account Deletion", req.session.user.email, req.session.user.username, format(new Date(), "YYYY:MM:dd"), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Account Deletion Notification" });
-            // Send email to notify admin that a user account has been deleted
-            yield sendAccountDeleteAdminNotificationEmail(req.session.user.email, req.session.user.username, "User account deleted", message, new Date().toLocaleDateString(), { "X-Category": "Account deletion" });
-        }
-        //Delete the user session from the express-session object
-        req.session.destroy((error) => {
-            if (error) {
-                return res.status(500).json({ message: "Internal server error" });
-            }
-        });
-        res.clearCookie("connect.sid");
+        // Send user account delete email
+        yield sendNotificationEmail("Account Deletion", req.user.email, req.user.username, format(new Date(), "YYYY:MM:dd"), `${(req.user.username, req.user.email)}`, { "X-Category": "Account Deletion Notification" });
+        // Send email to notify admin that a user account has been deleted
+        yield sendAccountDeleteAdminNotificationEmail(req.user.email, req.user.username, "User account deleted", message, new Date().toLocaleDateString(), { "X-Category": "Account deletion" });
+        res.clearCookie("token");
         return res
             .status(200)
             .json({ message: "User account deleted successfully" });
@@ -159,12 +150,8 @@ export const deleteUserAccount = (req, res) => __awaiter(void 0, void 0, void 0,
 });
 // Get user profile
 export const getUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     try {
-        let userId = "";
-        if ((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id)
-            userId = req.session.user.id;
-        const user = yield User.findById(userId);
+        const user = yield User.findById(req.user.id);
         if (!user) {
             return res.status(403).json({ error: "User not found" });
         }
@@ -176,11 +163,7 @@ export const getUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, fu
 });
 // Update user profile
 export const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     try {
-        let userId = "";
-        if ((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id)
-            userId = req.session.user.id;
         const { username, password, avatarUrl, firstName, lastName } = req.body;
         // Post avatarUrl to cloudinary before storing in db
         let newAvatarUrl = "";
@@ -208,7 +191,7 @@ export const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0,
         if (lastName)
             updatedData.name.firstName = lastName;
         // Fetch user and updata if the fields were provided
-        const updatedUser = yield User.findByIdAndUpdate(userId, updatedData, {
+        const updatedUser = yield User.findByIdAndUpdate(req.user.id, updatedData, {
             new: true,
         });
         if (!updatedUser) {
@@ -382,20 +365,15 @@ export const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 // Check auth state
-export const checkAuthState = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+export const checkAuthState = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        let userId = "";
-        if ((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id)
-            userId = req.session.user.id;
-        const user = yield User.findById(userId);
-        if (!user) {
+        const user = yield User.findById(req.user.id);
+        if (!user)
             return res
                 .status(401)
                 .json({ success: false, message: "User not found" });
-        }
-        req.user = req.session.user;
-        return res.status(200).json({ success: true, user });
+        if (req.isAuthenticated() && !user)
+            next();
     }
     catch (error) {
         return res.status(500).json({ message: "Internal server error" });
@@ -403,11 +381,10 @@ export const checkAuthState = (req, res) => __awaiter(void 0, void 0, void 0, fu
 });
 // Handle github login
 export const githubLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
     try {
-        if (((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.email) && ((_b = req.session.user) === null || _b === void 0 ? void 0 : _b.username)) {
+        if (req.user.email && req.user.username) {
             //send notification email
-            yield sendNotificationEmail("Account Login Via Github", req.session.user.email, req.session.user.username, new Date().toLocaleDateString(), `${(req.session.user.username, req.session.user.email)}`, { "X-Category": "Login Notification" });
+            yield sendNotificationEmail("Account Login Via Github", req.user.email, req.user.username, new Date().toLocaleDateString(), `${(req.user.username, req.user.email)}`, { "X-Category": "Login Notification" });
         }
         else {
             return res.status(401).json({ message: "Unauthorized" });
