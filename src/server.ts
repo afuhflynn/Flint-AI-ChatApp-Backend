@@ -83,11 +83,14 @@ app.get("/", (_: Request, res: Response) => {
 // Handle 404 errors
 app.get("*", (req: Request, res: Response) => {
   logger.error(`404 Error: ${req.originalUrl}`);
-  if (req.accepts("json"))
+
+  if (req.accepts("json")) {
     res.status(404).json({ success: false, message: "Page not found!" });
-  if (req.accepts("text")) res.status(404).send("Page not found!");
-  if (req.accepts("html"))
+  } else if (req.accepts("text")) {
+    res.status(404).send("Page not found!");
+  } else {
     res.status(404).sendFile(path.join(__dirname, "views", "404page.html"));
+  }
 });
 
 // Start server
