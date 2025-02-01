@@ -84,6 +84,22 @@ const UserSchema = new mongoose.Schema({
             default: "light",
         },
     },
+    accessToken: {
+        type: String,
+        default: "",
+    },
+    accessTokenExpires: {
+        type: Date,
+        default: new Date(Date.now()),
+    },
+    refreshToken: {
+        type: String,
+        default: "",
+    },
+    refreshTokenExpires: {
+        type: Date,
+        default: new Date(Date.now()),
+    },
     chats: [
         {
             id: String,

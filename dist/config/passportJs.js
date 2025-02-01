@@ -44,6 +44,7 @@ const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awa
     var _a, _b;
     try {
         let user = yield User.findOne({ githubId: profile.id });
+        console.log(accessToken, refreshToken);
         if (!user) {
             const newUser = new User({
                 githubId: profile.id,
@@ -51,10 +52,6 @@ const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awa
                 email: (_b = (_a = profile === null || profile === void 0 ? void 0 : profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value,
                 preferences: { avatarUrl: profile._json.avatar_url, theme: "light" },
                 bio: profile._json.bio,
-                accessToken,
-                refreshToken,
-                accesstokenExpires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
-                refreshTokenExpires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
                 isVerified: true,
             });
             user = yield newUser.save();

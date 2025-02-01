@@ -60,6 +60,7 @@ const gitHubVerifyCallback = async (
 ) => {
   try {
     let user = await User.findOne({ githubId: profile.id });
+    console.log(accessToken, refreshToken);
 
     if (!user) {
       const newUser = new User({
@@ -68,10 +69,6 @@ const gitHubVerifyCallback = async (
         email: profile?.emails?.[0]?.value,
         preferences: { avatarUrl: profile._json.avatar_url, theme: "light" },
         bio: profile._json.bio,
-        accessToken,
-        refreshToken,
-        accesstokenExpires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
-        refreshTokenExpires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         isVerified: true,
       });
 

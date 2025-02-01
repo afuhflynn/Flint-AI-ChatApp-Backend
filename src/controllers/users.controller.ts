@@ -477,7 +477,6 @@ export const githubLogin = async (
     // Log user details to console
 
     if (foundUser) {
-      console.log("User details:", foundUser);
       const {
         accessToken,
         accessTokenExpiresAt,
@@ -504,9 +503,7 @@ export const githubLogin = async (
       });
 
       // Redirect or send response
-      return res.redirect(
-        `${process.env.CLIENT_URL}/auth-success?token=${accessToken}`
-      );
+      return res.redirect(`${process.env.CLIENT_URL}/`);
     } else {
       return res.status(404).json({ message: "User not found" });
     }

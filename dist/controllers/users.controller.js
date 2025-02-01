@@ -390,7 +390,6 @@ export const githubLogin = (req, res) => __awaiter(void 0, void 0, void 0, funct
         });
         // Log user details to console
         if (foundUser) {
-            console.log("User details:", foundUser);
             const { accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, } = yield generateTokens(foundUser._id, foundUser.email, foundUser.username, foundUser.role);
             foundUser.accessToken = accessToken;
             foundUser.accessTokenExpires = accessTokenExpiresAt;
@@ -405,7 +404,7 @@ export const githubLogin = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 maxAge: Date.now() + 60 * 60 * 1000, // 1 hour
             });
             // Redirect or send response
-            return res.redirect(`${process.env.CLIENT_URL}/auth-success?token=${accessToken}`);
+            return res.redirect(`${process.env.CLIENT_URL}/`);
         }
         else {
             return res.status(404).json({ message: "User not found" });
