@@ -51,7 +51,7 @@ const localVerifyCallback: VerifyFunction = async (
   }
 };
 
-// Verify callback for GitHub Strategy (OAuth)
+/// GitHub OAuth callback
 const gitHubVerifyCallback = async (
   accessToken: string,
   refreshToken: string,
@@ -62,7 +62,7 @@ const gitHubVerifyCallback = async (
     let user = await User.findOne({ githubId: profile.id });
 
     if (!user) {
-      user = new User({
+      const newUser = new User({
         githubId: profile.id,
         username: profile.username,
         email: profile?.emails?.[0]?.value,
@@ -75,10 +75,10 @@ const gitHubVerifyCallback = async (
         isVerified: true,
       });
 
-      await user.save();
+      user = await newUser.save();
     }
 
-    return done(null, { user, accessToken, refreshToken });
+    return done(null, user);
   } catch (error) {
     return done(error, false);
   }

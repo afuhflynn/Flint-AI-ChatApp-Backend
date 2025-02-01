@@ -11,10 +11,13 @@ import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import crypto from "node:crypto";
 import { v2 as cloudinary } from "cloudinary";
+import { config } from "dotenv";
+config();
 import { sendAccountDeleteAdminNotificationEmail, sendAccountDeleteEmail, sendNotificationEmail, sendPasswordResetEmail, sendVerificationEmail, sendWelcomeEmail, } from "../utils/Emails/send.emails.js";
 import generateVerificationCode from "../utils/generateVerificationCode.js";
 import generateResetToken from "../utils/generateResetToken.js";
 import { format } from "date-fns";
+import generateTokens from "../utils/generateTokens.js";
 // Register user
 export const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, password, email } = req.body;
@@ -75,7 +78,7 @@ export const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 res.cookie("token", loggedInUser.accessToken, {
                     httpOnly: true,
                     sameSite: "strict",
-                    secure: true,
+                    secure: process.env.APP_STATUS === "development" ? false : true,
                     expires: loggedInUser.accessTokenExpires,
                 });
             }
@@ -382,29 +385,31 @@ export const checkAuthState = (req, res, next) => __awaiter(void 0, void 0, void
 // Handle github login
 export const githubLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (req.user.email && req.user.username) {
-            // Send welcome email since there is passport authentication
-            const loggedInUser = yield User.findOne({
-                _id: req.user._id,
-                email: req.user.email,
+        const foundUser = yield User.findOne({
+            githubId: req.user.githubId,
+        });
+        // Log user details to console
+        if (foundUser) {
+            console.log("User details:", foundUser);
+            const { accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, } = yield generateTokens(foundUser._id, foundUser.email, foundUser.username, foundUser.role);
+            foundUser.accessToken = accessToken;
+            foundUser.accessTokenExpires = accessTokenExpiresAt;
+            foundUser.refreshToken = refreshToken;
+            foundUser.refreshTokenExpires = refreshTokenExpiresAt;
+            yield foundUser.save();
+            // Set JWT as an httpOnly cookie
+            res.cookie("token", accessToken, {
+                httpOnly: true, // Makes the cookie inaccessible via JavaScript
+                secure: process.env.APP_STATUS === "development" ? false : true, // Set to true if you're using HTTPS
+                sameSite: "strict",
+                maxAge: Date.now() + 60 * 60 * 1000, // 1 hour
             });
-            if (loggedInUser) {
-                //send notification email
-                yield sendNotificationEmail("Account Login Via Github", req.user.email, req.user.username, new Date().toLocaleDateString(), `${(req.user.username, req.user.email)}`, { "X-Category": "Login Notification" });
-                // Save a new access token on client browser
-                res.cookie("token", loggedInUser.accessToken, {
-                    httpOnly: true,
-                    sameSite: "strict",
-                    secure: true,
-                    expires: loggedInUser.accessTokenExpires,
-                });
-            }
+            // Redirect or send response
+            return res.redirect(`${process.env.CLIENT_URL}/auth-success?token=${accessToken}`);
         }
         else {
-            return res.status(401).json({ message: "Unauthorized" });
+            return res.status(404).json({ message: "User not found" });
         }
-        //Redirect user permanently to frontend home page
-        return res.status(301).redirect(`${process.env.CLIENT_URL}`);
     }
     catch (error) {
         return res.status(500).json({ message: "Internal server error" });

@@ -39,13 +39,13 @@ const localVerifyCallback = (username, password, done) => __awaiter(void 0, void
         return done(error, false, { message: "An error occurred" });
     }
 });
-// Verify callback for GitHub Strategy (OAuth)
+/// GitHub OAuth callback
 const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
         let user = yield User.findOne({ githubId: profile.id });
         if (!user) {
-            user = new User({
+            const newUser = new User({
                 githubId: profile.id,
                 username: profile.username,
                 email: (_b = (_a = profile === null || profile === void 0 ? void 0 : profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value,
@@ -57,9 +57,9 @@ const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awa
                 refreshTokenExpires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
                 isVerified: true,
             });
-            yield user.save();
+            user = yield newUser.save();
         }
-        return done(null, { user, accessToken, refreshToken });
+        return done(null, user);
     }
     catch (error) {
         return done(error, false);

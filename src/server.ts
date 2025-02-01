@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import passport from "passport";
@@ -9,12 +9,11 @@ import geminiRouter from "./routes/gemini.route.js";
 import connectDB from "./config/db/connectDB.js";
 import mongoose from "mongoose";
 import path from "node:path";
-import { RequestWithUser, UserSchemaTypes } from "./TYPES.js";
+import { RequestWithUser } from "./TYPES.js";
 import userRouter from "./routes/users.router.js";
 import "./config/passportJs.js";
 import { githubLogin } from "./controllers/users.controller.js";
 import logger from "./utils/loger.js";
-import User from "./models/user.model.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,42 +48,27 @@ app.use(passport.initialize());
 // **GitHub Authentication Route**
 app.get(
   "/api/auth/users/github",
-  passport.authenticate("github", { scope: ["user:email"], session: false })
+  passport.authenticate("github", {
+    scope: ["user:email", "user:password"],
+    session: false, // Disable session
+    failureRedirect: `${process.env.CLIENT_URL}/auth/login-in`,
+    successRedirect: `${process.env.CLIENT_URL}/`,
+  })
 );
 
 // **GitHub OAuth Callback Route**
 app.get(
   "/auth/github/callback",
-  (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate(
-      "github",
-      { session: false },
-      async (err: any, user: UserSchemaTypes, _: any) => {
-        try {
-          if (err) return next(err);
-          if (!user) {
-            return res.redirect(
-              `${process.env.CLIENT_URL}/log-in?error=unauthorized`
-            );
-          }
-
-          const foundUser = await User.findOne({
-            githubId: (user as any).githubId,
-          });
-
-          if (foundUser) {
-            return res.redirect(
-              `${process.env.CLIENT_URL}/auth-success?token=${foundUser.accessToken}`
-            );
-          }
-
-          // If the user is new, create an account and generate a JWT
-          await githubLogin(req as Request & RequestWithUser, res);
-        } catch (error) {
-          next(error);
-        }
-      }
-    )(req, res, next);
+  passport.authenticate("github", {
+    session: false,
+    failureRedirect: `${process.env.CLIENT_URL}/auth/login-in`,
+  }),
+  async (req: Request, res: Response) => {
+    try {
+      githubLogin(req as Request & RequestWithUser, res);
+    } catch (error) {
+      res.status(500).json({ message: error });
+    }
   }
 );
 
@@ -98,14 +82,12 @@ app.get("/", (_: Request, res: Response) => {
 
 // Handle 404 errors
 app.get("*", (req: Request, res: Response) => {
-  logger.error(`404: ${req.url}`);
+  logger.error(`404 Error: ${req.originalUrl}`);
   if (req.accepts("json"))
-    return res.status(404).json({ success: false, message: "Page not found!" });
-  if (req.accepts("text")) return res.status(404).send("Page not found!");
+    res.status(404).json({ success: false, message: "Page not found!" });
+  if (req.accepts("text")) res.status(404).send("Page not found!");
   if (req.accepts("html"))
-    return res
-      .status(404)
-      .sendFile(path.join(__dirname, "views", "404page.html"));
+    res.status(404).sendFile(path.join(__dirname, "views", "404page.html"));
 });
 
 // Start server
