@@ -127,7 +127,7 @@ After successful registration, the backend sends a verification email to the use
 
 ### Example Code
 
-#### Sign Controller
+#### Sign up Controller
 
 ```ts
 // Register user
@@ -135,32 +135,38 @@ export const registerUser = async (req: Request, res: Response) => {
   const { username, password, email } = req.body;
   // Check if all required fields are provided
   if (!username || !password || !email)
-    return res
-      .status(400)
-      .json({ success: false, message: "All fields are required" });
+    return res.status(400).json({ message: "All fields are required" });
   try {
     // Check if user already exists
-    const user = await User.findOne({ username, email });
-    if (user)
-      return res
-        .status(400)
-        .json({ success: false, message: "User already exists" });
+    const userNameExists = await User.findOne({ username: username });
+    if (userNameExists)
+      return res.status(400).json({
+        message: "User with this username already exists. You can login",
+      });
+    const userEmailExists = await User.findOne({ email: email });
+    if (userEmailExists)
+      return res.status(400).json({
+        message: "User with this email already exists. You can login",
+      });
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+    // Generate a new verification token
+    const token: string = await crypto.randomBytes(60).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // one day
+    // Generate new verification code
     const verificationCode: string = generateVerificationCode();
-    // Verification expires at date
-    const verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    const newUserName = username.trim(); // Remove all spaces in the username and convert it to a single word
     const newUser = new User({
-      newUserName,
+      username,
       password: hashedPassword,
       email,
       verificationCode,
-      verificationCodeExpires,
+      verificationCodeExpires: expiresAt,
+      verificationToken: token,
+      verificationTokenExpires: expiresAt,
     });
     await newUser.save();
 
-    await sendVerificationEmail(verificationCode, email, username, {
+    await sendVerificationEmail(verificationCode, email, username, token, {
       "X-Category": "Verification Email",
     });
 
@@ -168,7 +174,10 @@ export const registerUser = async (req: Request, res: Response) => {
       message: "User registered successfully. Verification email sent.",
     });
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 ```
@@ -177,21 +186,36 @@ export const registerUser = async (req: Request, res: Response) => {
 
 ```ts
 // Login a user
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (
+  req: Request & RequestWithUser,
+  res: Response
+) => {
   try {
-    // Send welcome email since there is passport authentication
-    if (req.session.user?.email && req.session.user?.username)
+    const loggedInUser = await User.findOne({
+      email: req.user.email,
+    });
+
+    if (loggedInUser) {
+      // Save a new access token on client browser
+      // Set JWT as an httpOnly cookie
+      res.cookie("token", loggedInUser.accessToken, {
+        httpOnly: true, // Makes the cookie inaccessible via JavaScript
+        secure: process.env.APP_STATUS === "development" ? false : true, // Set to true if you're using HTTPS
+        sameSite: "strict",
+        maxAge: Date.now() + 60 * 60 * 1000, // 1 hour
+      });
+
       //send notification email
       await sendNotificationEmail(
         "Account Login",
-        req.session.user.email,
-        req.session.user.username,
+        loggedInUser.email,
+        loggedInUser.username,
         new Date().toLocaleDateString(),
-        `${(req.session.user.username, req.session.user.email)}`,
+        `${loggedInUser.username}, ${loggedInUser.email}`,
         { "X-Category": "Login Notification" }
       );
-    req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
-    return res.status(200).json({ message: "Logged in successfully" });
+      return res.status(200).json({ message: "Logged in successfully" });
+    }
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
