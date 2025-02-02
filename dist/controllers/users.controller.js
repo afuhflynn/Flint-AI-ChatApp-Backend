@@ -50,7 +50,7 @@ export const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, func
             verificationCode,
             verificationCodeExpires: expiresAt,
             verificationToken: token,
-            verificationTokenExpiresAt: expiresAt,
+            verificationTokenExpires: expiresAt,
         });
         yield newUser.save();
         yield sendVerificationEmail(verificationCode, email, username, token, {
@@ -70,25 +70,22 @@ export const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, func
 // Login a user
 export const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Send welcome email since there is passport authentication
-        if (req.isAuthenticated() && req.user.email && req.user.username) {
-            const loggedInUser = yield User.findOne({
-                _id: req.user._id,
-                email: req.user.email,
+        const loggedInUser = yield User.findOne({
+            email: req.user.email,
+        });
+        if (loggedInUser) {
+            // Save a new access token on client browser
+            // Set JWT as an httpOnly cookie
+            res.cookie("token", loggedInUser.accessToken, {
+                httpOnly: true, // Makes the cookie inaccessible via JavaScript
+                secure: process.env.APP_STATUS === "development" ? false : true, // Set to true if you're using HTTPS
+                sameSite: "strict",
+                maxAge: Date.now() + 60 * 60 * 1000, // 1 hour
             });
-            if (loggedInUser) {
-                //send notification email
-                yield sendNotificationEmail("Account Login", loggedInUser.email, loggedInUser.username, new Date().toLocaleDateString(), `${loggedInUser.username}, ${loggedInUser.email}`, { "X-Category": "Login Notification" });
-                // Save a new access token on client browser
-                res.cookie("token", loggedInUser.accessToken, {
-                    httpOnly: true,
-                    sameSite: "strict",
-                    secure: process.env.APP_STATUS === "development" ? false : true,
-                    expires: loggedInUser.accessTokenExpires,
-                });
-            }
+            //send notification email
+            yield sendNotificationEmail("Account Login", loggedInUser.email, loggedInUser.username, new Date().toLocaleDateString(), `${loggedInUser.username}, ${loggedInUser.email}`, { "X-Category": "Login Notification" });
+            return res.status(200).json({ message: "Logged in successfully" });
         }
-        return res.status(200).json({ message: "Logged in successfully" });
     }
     catch (error) {
         return res.status(500).json({ message: "Internal server error" });
@@ -253,7 +250,7 @@ export const verifyUserAccountWithToken = (req, res) => __awaiter(void 0, void 0
     if (!token)
         return res
             .status(400)
-            .json({ success: false, message: "Expired verification token" });
+            .json({ success: false, message: "A verification token is expected" });
     try {
         // Find for a user with verification code that has not expired
         const user = yield User.findOne({
@@ -394,7 +391,6 @@ export const githubLogin = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const foundUser = yield User.findOne({
             githubId: req.user.githubId,
         });
-        // Log user details to console
         if (foundUser) {
             const { accessToken, accessTokenExpiresAt, refreshToken, refreshTokenExpiresAt, } = yield generateTokens(foundUser._id, foundUser.email, foundUser.username, foundUser.role);
             foundUser.accessToken = accessToken;

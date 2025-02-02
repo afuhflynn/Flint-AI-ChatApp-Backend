@@ -33,28 +33,40 @@ const localVerifyCallback = (username, password, done) => __awaiter(void 0, void
         foundUser.accessTokenExpires = accessTokenExpiresAt;
         foundUser.refreshTokenExpires = refreshTokenExpiresAt;
         yield foundUser.save();
-        return done(null, { user: foundUser, accessToken, refreshToken });
+        return done(null, foundUser);
     }
     catch (error) {
-        return done(error, false, { message: "An error occurred" });
+        return done(error, false);
     }
 });
 /// GitHub OAuth callback
 const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d;
+    console.log(accessToken, refreshToken);
     try {
-        let user = yield User.findOne({ githubId: profile.id });
-        console.log(accessToken, refreshToken);
+        let user = yield User.findOne({
+            githubId: profile.id,
+        });
         if (!user) {
-            const newUser = new User({
-                githubId: profile.id,
+            // Check if username and email already exists
+            const foundUser = yield User.findOne({
                 username: profile.username,
                 email: (_b = (_a = profile === null || profile === void 0 ? void 0 : profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value,
-                preferences: { avatarUrl: profile._json.avatar_url, theme: "light" },
-                bio: profile._json.bio,
-                isVerified: true,
             });
-            user = yield newUser.save();
+            if (!foundUser) {
+                const newUser = new User({
+                    githubId: profile.id,
+                    username: profile.username,
+                    email: (_d = (_c = profile === null || profile === void 0 ? void 0 : profile.emails) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.value,
+                    preferences: { avatarUrl: profile._json.avatar_url, theme: "light" },
+                    bio: profile._json.bio,
+                    isVerified: true,
+                });
+                user = yield newUser.save();
+            }
+            else {
+                return done("User name or email already exists!");
+            }
         }
         return done(null, user);
     }

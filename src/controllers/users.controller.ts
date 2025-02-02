@@ -51,7 +51,7 @@ export const registerUser = async (req: Request, res: Response) => {
       verificationCode,
       verificationCodeExpires: expiresAt,
       verificationToken: token,
-      verificationTokenExpiresAt: expiresAt,
+      verificationTokenExpires: expiresAt,
     });
     await newUser.save();
 
@@ -76,33 +76,31 @@ export const loginUser = async (
   res: Response
 ) => {
   try {
-    // Send welcome email since there is passport authentication
-    if (req.isAuthenticated() && req.user.email && req.user.username) {
-      const loggedInUser = await User.findOne({
-        _id: req.user._id,
-        email: req.user.email,
-      });
-      if (loggedInUser) {
-        //send notification email
-        await sendNotificationEmail(
-          "Account Login",
-          loggedInUser.email,
-          loggedInUser.username,
-          new Date().toLocaleDateString(),
-          `${loggedInUser.username}, ${loggedInUser.email}`,
-          { "X-Category": "Login Notification" }
-        );
+    const loggedInUser = await User.findOne({
+      email: req.user.email,
+    });
 
-        // Save a new access token on client browser
-        res.cookie("token", loggedInUser.accessToken, {
-          httpOnly: true,
-          sameSite: "strict",
-          secure: process.env.APP_STATUS === "development" ? false : true,
-          expires: loggedInUser.accessTokenExpires,
-        });
-      }
+    if (loggedInUser) {
+      // Save a new access token on client browser
+      // Set JWT as an httpOnly cookie
+      res.cookie("token", loggedInUser.accessToken, {
+        httpOnly: true, // Makes the cookie inaccessible via JavaScript
+        secure: process.env.APP_STATUS === "development" ? false : true, // Set to true if you're using HTTPS
+        sameSite: "strict",
+        maxAge: Date.now() + 60 * 60 * 1000, // 1 hour
+      });
+
+      //send notification email
+      await sendNotificationEmail(
+        "Account Login",
+        loggedInUser.email,
+        loggedInUser.username,
+        new Date().toLocaleDateString(),
+        `${loggedInUser.username}, ${loggedInUser.email}`,
+        { "X-Category": "Login Notification" }
+      );
+      return res.status(200).json({ message: "Logged in successfully" });
     }
-    return res.status(200).json({ message: "Logged in successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -321,7 +319,7 @@ export const verifyUserAccountWithToken = async (
   if (!token)
     return res
       .status(400)
-      .json({ success: false, message: "Expired verification token" });
+      .json({ success: false, message: "A verification token is expected" });
   try {
     // Find for a user with verification code that has not expired
     const user = await User.findOne({
@@ -480,7 +478,6 @@ export const githubLogin = async (
     const foundUser = await User.findOne({
       githubId: (req.user as any).githubId,
     });
-    // Log user details to console
 
     if (foundUser) {
       const {

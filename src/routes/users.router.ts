@@ -37,10 +37,13 @@ userRouter.post("/sign-up", async (req: Request, res: Response) => {
 
 userRouter.post(
   "/sign-in",
-  passport.authenticate("local", { session: false }),
+  passport.authenticate("local", {
+    session: false,
+    failureRedirect: `${process.env.CLIENT_URL}/auth/login-in`,
+  }),
   async (req: Request, res: Response) => {
     try {
-      await loginUser(req as Request & RequestWithUser, res);
+      loginUser(req as Request & RequestWithUser, res);
     } catch (error) {
       console.error("Error in sign-in route:", error);
       res.status(500).json({ error: "Internal server error" });

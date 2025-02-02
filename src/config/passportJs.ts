@@ -45,9 +45,9 @@ const localVerifyCallback: VerifyFunction = async (
     foundUser.refreshTokenExpires = refreshTokenExpiresAt;
     await foundUser.save();
 
-    return done(null, { user: foundUser, accessToken, refreshToken });
+    return done(null, foundUser);
   } catch (error) {
-    return done(error, false, { message: "An error occurred" });
+    return done(error, false);
   }
 };
 
@@ -58,21 +58,32 @@ const gitHubVerifyCallback = async (
   profile: GitHubProfileTypes,
   done: DoneCallback
 ) => {
+  console.log(accessToken, refreshToken);
   try {
-    let user = await User.findOne({ githubId: profile.id });
-    console.log(accessToken, refreshToken);
+    let user = await User.findOne({
+      githubId: profile.id,
+    });
 
     if (!user) {
-      const newUser = new User({
-        githubId: profile.id,
+      // Check if username and email already exists
+      const foundUser = await User.findOne({
         username: profile.username,
         email: profile?.emails?.[0]?.value,
-        preferences: { avatarUrl: profile._json.avatar_url, theme: "light" },
-        bio: profile._json.bio,
-        isVerified: true,
       });
+      if (!foundUser) {
+        const newUser = new User({
+          githubId: profile.id,
+          username: profile.username,
+          email: profile?.emails?.[0]?.value,
+          preferences: { avatarUrl: profile._json.avatar_url, theme: "light" },
+          bio: profile._json.bio,
+          isVerified: true,
+        });
 
-      user = await newUser.save();
+        user = await newUser.save();
+      } else {
+        return done("User name or email already exists!");
+      }
     }
 
     return done(null, user);
