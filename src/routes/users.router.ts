@@ -119,7 +119,7 @@ userRouter.post("/verify-account-code", async (req: Request, res: Response) => {
 });
 
 userRouter.post(
-  "/verify-account-token",
+  "/verify-account-token/:token",
   async (req: Request, res: Response) => {
     try {
       await verifyUserAccountWithToken(req as Request & RequestWithUser, res);

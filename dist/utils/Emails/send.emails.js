@@ -27,7 +27,7 @@ const sendVerificationEmail = (code, email, username, token, headers) => __await
         const newEmail = verificationEmailTemplate
             .replace("[user_name]", username)
             .replace("[verification_code]", code)
-            .replace("href=[verification_link]", `href=${process.env.CLIENT_URL}/confirm-email/${token}`);
+            .replace("href=[verification_link]", `href=${process.env.CLIENT_URL}/auth/confirm-email-link/${token}`);
         yield sendEmail(email, "Verification Email", newEmail, headers, attachments);
     }
     catch (error) {

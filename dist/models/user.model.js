@@ -100,6 +100,34 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: new Date(Date.now()),
     },
+    resetPasswordToken: {
+        type: String,
+        default: "",
+    },
+    resetPasswordTokenExpires: {
+        type: Date,
+        default: new Date(Date.now()),
+    },
+    verificationCode: {
+        type: String,
+        default: "",
+    },
+    verificationCodeExpires: {
+        type: Date,
+        default: new Date(Date.now()),
+    },
+    verificationToken: {
+        type: String,
+        default: "",
+    },
+    verificationTokenExpires: {
+        type: Date,
+        default: new Date(Date.now()),
+    },
+    accountDeleteToken: {
+        type: String,
+        default: "",
+    },
     chats: [
         {
             id: String,

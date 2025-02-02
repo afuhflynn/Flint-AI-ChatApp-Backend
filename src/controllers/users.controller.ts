@@ -24,26 +24,28 @@ export const registerUser = async (req: Request, res: Response) => {
   const { username, password, email } = req.body;
   // Check if all required fields are provided
   if (!username || !password || !email)
-    return res
-      .status(400)
-      .json({ success: false, message: "All fields are required" });
+    return res.status(400).json({ message: "All fields are required" });
   try {
     // Check if user already exists
-    const user = await User.findOne({ username, email });
-    if (user)
-      return res
-        .status(400)
-        .json({ success: false, message: "User already exists" });
+    const userNameExists = await User.findOne({ username: username });
+    if (userNameExists)
+      return res.status(400).json({
+        message: "User with this username already exists. You can login",
+      });
+    const userEmailExists = await User.findOne({ email: email });
+    if (userEmailExists)
+      return res.status(400).json({
+        message: "User with this email already exists. You can login",
+      });
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
     // Generate a new verification token
     const token: string = await crypto.randomBytes(60).toString("hex");
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // one day
     // Generate new verification code
     const verificationCode: string = generateVerificationCode();
-    const newUserName = username.trim(); // Remove all spaces in the username and convert it to a single word
     const newUser = new User({
-      newUserName,
+      username,
       password: hashedPassword,
       email,
       verificationCode,
@@ -61,7 +63,10 @@ export const registerUser = async (req: Request, res: Response) => {
       message: "User registered successfully. Verification email sent.",
     });
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -276,16 +281,17 @@ export const verifyUserAccountWithCode = async (
   res: Response
 ) => {
   const { code } = req.body;
-  if (!code)
-    return res
-      .status(400)
-      .json({ success: false, message: "Verification code is required" });
+  if (!code || code.length < 6)
+    return res.status(400).json({
+      success: false,
+      message: "You must provide a valid verfication code",
+    });
   try {
     // Find for a user with verification code that has not expired
     const user = await User.findOne({
       verificationCode: code,
       isVerified: false,
-      verificationCodeExpires: { $gt: new Date(Date.now()) },
+      verificationCodeExpires: { $gt: Date.now() },
     });
     if (!user)
       return res.status(400).json({
@@ -321,7 +327,7 @@ export const verifyUserAccountWithToken = async (
     const user = await User.findOne({
       verificationToken: token,
       isVerified: false,
-      verificationTokenExpires: { $gt: new Date(Date.now()) },
+      verificationTokenExpires: { $gt: Date.now() },
     });
     if (!user)
       return res.status(400).json({
@@ -353,7 +359,7 @@ export const resendVerificationCode = async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({
       email,
-      verificationCodeExpires: { $gt: new Date(Date.now()) },
+      verificationCodeExpires: { $gt: Date.now() },
     });
     if (!user)
       return res
@@ -422,7 +428,7 @@ export const resetPassword = async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({
       resetPasswordToken: token,
-      resetPasswordTokenExpires: { $gt: new Date(Date.now()) },
+      resetPasswordTokenExpires: { $gt: Date.now() },
     });
     if (!user)
       return res.status(403).json({
@@ -500,6 +506,11 @@ export const githubLogin = async (
         secure: process.env.APP_STATUS === "development" ? false : true, // Set to true if you're using HTTPS
         sameSite: "strict",
         maxAge: Date.now() + 60 * 60 * 1000, // 1 hour
+      });
+
+      // Send welcome email
+      await sendWelcomeEmail(foundUser.email, foundUser.username, {
+        "X-Category": "Welcome Email",
       });
 
       // Redirect or send response

@@ -46,7 +46,7 @@ const sendVerificationEmail = async (
       .replace("[verification_code]", code)
       .replace(
         "href=[verification_link]",
-        `href=${process.env.CLIENT_URL}/confirm-email/${token}`
+        `href=${process.env.CLIENT_URL}/auth/confirm-email-link/${token}`
       );
     await sendEmail(
       email,

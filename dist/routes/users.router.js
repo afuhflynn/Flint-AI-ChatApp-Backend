@@ -93,7 +93,7 @@ userRouter.post("/verify-account-code", (req, res) => __awaiter(void 0, void 0, 
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.post("/verify-account-token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.post("/verify-account-token/:token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield verifyUserAccountWithToken(req, res);
     }
