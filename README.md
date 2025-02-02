@@ -243,7 +243,7 @@ Stay tuned for updates on these features!
 
 ## Authors
 
-- **Your Name** - *Initial work* - [AfuhFlynns](https://github.com/AfuhFlynns)
+- **Afuh Flyine Tembeng** - *Initial work* - [AfuhFlynns](https://github.com/AfuhFlynns)
 
 ## License
 
