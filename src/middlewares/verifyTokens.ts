@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 import User from "../models/user.model.js";
 import { Response, Request, NextFunction } from "express";
-import { RequestWithUser } from "../TYPES.js";
+import { RequestWithUser, UserSchemaTypes } from "../TYPES.js";
 import logger from "../utils/loger.js";
 
 const verifyTokens = async (
@@ -15,10 +15,9 @@ const verifyTokens = async (
   try {
     if (!sentCookie) {
       res.status(401).json({
-        success: false,
         message: "Please login and verify your account. Or create one",
       });
-      return;
+      return; // Exit the function without doing anything
     }
 
     const foundUser = await User.findOne({
@@ -28,7 +27,6 @@ const verifyTokens = async (
 
     if (!foundUser) {
       res.status(403).json({
-        success: false,
         message: "Invalid or expired token",
       });
       return;
@@ -38,25 +36,29 @@ const verifyTokens = async (
       sentCookie,
       process.env.ACCESS_TOKEN_SECRET as string,
       { algorithms: ["HS256"] },
-      (error, decoded: any) => {
+      (error, _: any) => {
         if (error) {
           res.status(403).json({
-            message: "Invalid or expired token",
+            message: "Invalid or expired session",
           });
           return;
         }
-        req.user.id = decoded.id;
-        req.user.username = decoded.username;
-        req.user.email = decoded.email;
-        req.user.role = decoded.role;
+        // First empty the req user object
+        req.user = {} as UserSchemaTypes;
+
+        req.user.id = foundUser._id;
+        req.user.username = foundUser.username;
+        req.user.email = foundUser.email;
+        req.user.role = foundUser.role;
         next();
       }
     );
-  } catch (error: any | { message: string }) {
+  } catch (error: any) {
     logger.error(`Error verifying user token: ${error.message}`);
-    return res
+    res
       .status(500)
       .json({ message: "Internal server error. Please try again later" });
+    return; // Just exit without doing anything
   }
 };
 

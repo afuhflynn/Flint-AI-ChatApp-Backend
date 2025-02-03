@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import crypto from "node:crypto";
@@ -110,23 +110,30 @@ export const loginUser = async (
   }
 };
 
+// NOTE: Protected routes
 // Logout user
 export const logoutUser = async (
   req: Request & RequestWithUser,
   res: Response
 ) => {
   try {
-    // send account notificaiton email
-    if (req.isAuthenticated() && req.user.email && req.user.username) {
-      await sendNotificationEmail(
-        "Account Logout",
-        req.user.email,
-        req.user.username,
-        new Date().toLocaleDateString(),
-        `${(req.user.username, req.user.email)}`,
-        { "X-Category": "Logout Notification" }
-      );
+    const user = await User.findOne({
+      _id: req.user.id,
+      email: req.user.email,
+      isVerified: true,
+    });
+    if (!user) {
+      return res.status(403).json({ error: "User not found" });
     }
+    // send account notificaiton email
+    await sendNotificationEmail(
+      "Account Logout",
+      req.user.email,
+      req.user.username,
+      new Date().toLocaleDateString(),
+      `${(req.user.username, req.user.email)}`,
+      { "X-Category": "Logout Notification" }
+    );
     // Clear cookies
     res.clearCookie("token");
     return res.status(200).json({ message: "Logged out successfully" });
@@ -174,7 +181,6 @@ export const deleteUserAccount = async (
 ) => {
   const { token } = req.params;
   const { message } = req.body;
-  // TODO: Send the admin an email containing and explaining users reason for account deletion
   // Check if user provided a message
   if (!message)
     return res
@@ -226,11 +232,17 @@ export const getUserProfile = async (
   res: Response
 ) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findOne({
+      _id: req.user.id,
+      email: req.user.email,
+      isVerified: true,
+    });
+
     if (!user) {
-      return res.status(403).json({ error: "User not found" });
+      return res.status(403).json({ message: "User not found" });
     }
-    res.status(200).json(user);
+    console.log(user);
+    return res.status(200).json({ user: user });
   } catch (error: any | { message: string }) {
     logger.error(`Error fetching user profile: ${error.message}`);
     return res
@@ -292,6 +304,7 @@ export const updateUserProfile = async (
   }
 };
 
+// NOTE: Open routes
 // Verify user account
 export const verifyUserAccountWithCode = async (
   req: Request,
@@ -432,7 +445,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
     await sendPasswordResetEmail(
       email,
       user.username,
-      `${process.env.CLIENT_URL}/reset-password/${resetToken}`,
+      `${process.env.CLIENT_URL}/auth/reset-password/${resetToken}`,
       {
         "X-Category": "Password Reset Email",
       }
@@ -462,7 +475,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     if (!user)
       return res.status(403).json({
         success: false,
-        message: "Invalid or expired reset link. Try again later",
+        message: "Invalid or expired reset link. Request another one",
       });
     user.password = await bcrypt.hash(password, 10);
     user.resetPasswordToken = "";
@@ -476,30 +489,11 @@ export const resetPassword = async (req: Request, res: Response) => {
       `${(user.username, user.email)}`,
       { "X-Category": "Password Reset Notification" }
     );
+    // Clear browser cookie
+    res.clearCookie("token");
     return res.status(200).json({ message: "Password reset successfully" });
   } catch (error: any | { message: string }) {
     logger.error(`Error resetting user password: ${error.message}`);
-    return res
-      .status(500)
-      .json({ message: "Internal server error. Please try again later" });
-  }
-};
-
-// Check auth state
-export const checkAuthState = async (
-  req: Request & RequestWithUser,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const user = await User.findById(req.user.id);
-    if (!user)
-      return res
-        .status(401)
-        .json({ success: false, message: "User not found" });
-    if (req.isAuthenticated() && !user) next();
-  } catch (error: any | { message: string }) {
-    logger.error(`Error Checking user auth state: ${error.message}`);
     return res
       .status(500)
       .json({ message: "Internal server error. Please try again later" });
@@ -559,5 +553,3 @@ export const githubLogin = async (
       .json({ message: "Internal server error. Please try again later" });
   }
 };
-
-// NOTE: Will work on more endpoints

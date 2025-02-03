@@ -40,7 +40,6 @@ app.use(cors({
     optionsSuccessStatus: 200,
 }));
 app.use(express.urlencoded({ extended: true }));
-app.set("trust proxy", 1);
 app.use(morgan("dev"));
 // Passport js init
 app.use(passport.initialize());
@@ -60,7 +59,7 @@ app.get("/auth/github/callback", passport.authenticate("github", {
         githubLogin(req, res);
     }
     catch (error) {
-        logger.error(`Error login in with github: ${error.message} - by ${req.user.username}`);
+        logger.error(`Error login in with github: ${error.message}`);
         res.status(500).json({ message: error });
     }
 }));

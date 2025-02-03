@@ -18,10 +18,9 @@ const verifyTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     try {
         if (!sentCookie) {
             res.status(401).json({
-                success: false,
                 message: "Please login and verify your account. Or create one",
             });
-            return;
+            return; // Exit the function without doing anything
         }
         const foundUser = yield User.findOne({
             accessToken: sentCookie,
@@ -29,30 +28,32 @@ const verifyTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         });
         if (!foundUser) {
             res.status(403).json({
-                success: false,
                 message: "Invalid or expired token",
             });
             return;
         }
-        jwt.verify(sentCookie, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, decoded) => {
+        jwt.verify(sentCookie, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => {
             if (error) {
                 res.status(403).json({
-                    message: "Invalid or expired token",
+                    message: "Invalid or expired session",
                 });
                 return;
             }
-            req.user.id = decoded.id;
-            req.user.username = decoded.username;
-            req.user.email = decoded.email;
-            req.user.role = decoded.role;
+            // First empty the req user object
+            req.user = {};
+            req.user.id = foundUser._id;
+            req.user.username = foundUser.username;
+            req.user.email = foundUser.email;
+            req.user.role = foundUser.role;
             next();
         });
     }
     catch (error) {
         logger.error(`Error verifying user token: ${error.message}`);
-        return res
+        res
             .status(500)
             .json({ message: "Internal server error. Please try again later" });
+        return; // Just exit without doing anything
     }
 });
 export default verifyTokens;

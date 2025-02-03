@@ -77,7 +77,7 @@ const sendPasswordResetEmail = (email, username, resetUrl, headers) => __awaiter
     try {
         const newEmail = passwordResetEmailTemplate
             .replace("[user_name]", username)
-            .replace("[reset_link]", resetUrl)
+            .replace("<[reset_link]>", resetUrl)
             .replace("href=[reset_link]", `href=${resetUrl}`);
         //Send email content
         yield sendEmail(email, "Password Reset Email", newEmail, headers, attachments);

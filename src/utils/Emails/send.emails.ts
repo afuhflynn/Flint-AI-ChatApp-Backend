@@ -140,7 +140,7 @@ const sendPasswordResetEmail = async (
   try {
     const newEmail: string = passwordResetEmailTemplate
       .replace("[user_name]", username)
-      .replace("[reset_link]", resetUrl)
+      .replace("<[reset_link]>", resetUrl)
       .replace("href=[reset_link]", `href=${resetUrl}`);
     //Send email content
     await sendEmail(

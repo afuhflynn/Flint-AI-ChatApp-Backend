@@ -95,13 +95,20 @@ export const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
             .json({ message: "Internal server error. Please try again later" });
     }
 });
+// NOTE: Protected routes
 // Logout user
 export const logoutUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // send account notificaiton email
-        if (req.isAuthenticated() && req.user.email && req.user.username) {
-            yield sendNotificationEmail("Account Logout", req.user.email, req.user.username, new Date().toLocaleDateString(), `${(req.user.username, req.user.email)}`, { "X-Category": "Logout Notification" });
+        const user = yield User.findOne({
+            _id: req.user.id,
+            email: req.user.email,
+            isVerified: true,
+        });
+        if (!user) {
+            return res.status(403).json({ error: "User not found" });
         }
+        // send account notificaiton email
+        yield sendNotificationEmail("Account Logout", req.user.email, req.user.username, new Date().toLocaleDateString(), `${(req.user.username, req.user.email)}`, { "X-Category": "Logout Notification" });
         // Clear cookies
         res.clearCookie("token");
         return res.status(200).json({ message: "Logged out successfully" });
@@ -137,7 +144,6 @@ export const sendDeleteAccountRequest = (req, res) => __awaiter(void 0, void 0, 
 export const deleteUserAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { token } = req.params;
     const { message } = req.body;
-    // TODO: Send the admin an email containing and explaining users reason for account deletion
     // Check if user provided a message
     if (!message)
         return res
@@ -169,11 +175,16 @@ export const deleteUserAccount = (req, res) => __awaiter(void 0, void 0, void 0,
 // Get user profile
 export const getUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const user = yield User.findById(req.user.id);
+        const user = yield User.findOne({
+            _id: req.user.id,
+            email: req.user.email,
+            isVerified: true,
+        });
         if (!user) {
-            return res.status(403).json({ error: "User not found" });
+            return res.status(403).json({ message: "User not found" });
         }
-        res.status(200).json(user);
+        console.log(user);
+        return res.status(200).json({ user: user });
     }
     catch (error) {
         logger.error(`Error fetching user profile: ${error.message}`);
@@ -228,6 +239,7 @@ export const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0,
             .json({ message: "Internal server error. Please try again later" });
     }
 });
+// NOTE: Open routes
 // Verify user account
 export const verifyUserAccountWithCode = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { code } = req.body;
@@ -360,7 +372,7 @@ export const requestPasswordReset = (req, res) => __awaiter(void 0, void 0, void
         user.resetPasswordToken = resetToken;
         user.resetPasswordTokenExpires = expiresAt;
         yield user.save();
-        yield sendPasswordResetEmail(email, user.username, `${process.env.CLIENT_URL}/reset-password/${resetToken}`, {
+        yield sendPasswordResetEmail(email, user.username, `${process.env.CLIENT_URL}/auth/reset-password/${resetToken}`, {
             "X-Category": "Password Reset Email",
         });
         return res.status(200).json({ message: "Password reset email sent" });
@@ -388,35 +400,19 @@ export const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, fun
         if (!user)
             return res.status(403).json({
                 success: false,
-                message: "Invalid or expired reset link. Try again later",
+                message: "Invalid or expired reset link. Request another one",
             });
         user.password = yield bcrypt.hash(password, 10);
         user.resetPasswordToken = "";
         user.resetPasswordTokenExpires = undefined;
         yield user.save();
         sendNotificationEmail("Password Reset", user.email, user.username, new Date().toLocaleDateString(), `${(user.username, user.email)}`, { "X-Category": "Password Reset Notification" });
+        // Clear browser cookie
+        res.clearCookie("token");
         return res.status(200).json({ message: "Password reset successfully" });
     }
     catch (error) {
         logger.error(`Error resetting user password: ${error.message}`);
-        return res
-            .status(500)
-            .json({ message: "Internal server error. Please try again later" });
-    }
-});
-// Check auth state
-export const checkAuthState = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const user = yield User.findById(req.user.id);
-        if (!user)
-            return res
-                .status(401)
-                .json({ success: false, message: "User not found" });
-        if (req.isAuthenticated() && !user)
-            next();
-    }
-    catch (error) {
-        logger.error(`Error Checking user auth state: ${error.message}`);
         return res
             .status(500)
             .json({ message: "Internal server error. Please try again later" });
@@ -460,5 +456,4 @@ export const githubLogin = (req, res) => __awaiter(void 0, void 0, void 0, funct
             .json({ message: "Internal server error. Please try again later" });
     }
 });
-// NOTE: Will work on more endpoints
 //# sourceMappingURL=users.controller.js.map

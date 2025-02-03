@@ -1,6 +1,5 @@
 import express, { Router, Request, Response, NextFunction } from "express";
 import {
-  checkAuthState,
   deleteUserAccount,
   getUserProfile,
   loginUser,
@@ -24,6 +23,8 @@ const app = express();
 import "../config/passportJs.js";
 import { RequestWithUser } from "../TYPES.js";
 import logger from "../utils/loger.js";
+import { checkAuthState } from "../middlewares/verifyAuth.js";
+import verifyTokens from "../middlewares/verifyTokens.js";
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -52,19 +53,25 @@ userRouter.post(
   }
 );
 
-userRouter.post("/log-out", async (req: Request, res: Response) => {
-  try {
-    await logoutUser(req as Request & RequestWithUser, res);
-  } catch (error: any | { message: string }) {
-    logger.error(`Error in log out route: ${error.message}`);
-    res.status(500).json({ error: "Internal server error" });
+userRouter.post(
+  "/log-out",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await verifyTokens(req as Request & RequestWithUser, res, next);
+      await checkAuthState(req as Request & RequestWithUser, res, next);
+      await logoutUser(req as Request & RequestWithUser, res);
+    } catch (error: any | { message: string }) {
+      logger.error(`Error in log out route: ${error.message}`);
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
-});
+);
 
 userRouter.post(
   "/account-delete-request",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      await verifyTokens(req as Request & RequestWithUser, res, next);
       await checkAuthState(req as Request & RequestWithUser, res, next);
       await sendDeleteAccountRequest(req as Request & RequestWithUser, res);
     } catch (error: any | { message: string }) {
@@ -78,6 +85,7 @@ userRouter.delete(
   "/delete-account",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      await verifyTokens(req as Request & RequestWithUser, res, next);
       await checkAuthState(req as Request & RequestWithUser, res, next);
       await deleteUserAccount(req as Request & RequestWithUser, res);
     } catch (error: any | { message: string }) {
@@ -88,9 +96,10 @@ userRouter.delete(
 );
 
 userRouter.get(
-  "/get-profile",
+  "/profile",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      await verifyTokens(req as Request & RequestWithUser, res, next);
       await checkAuthState(req as Request & RequestWithUser, res, next);
       await getUserProfile(req as Request & RequestWithUser, res);
     } catch (error: any | { message: string }) {
@@ -104,6 +113,7 @@ userRouter.put(
   "/update-profile",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      await verifyTokens(req as Request & RequestWithUser, res, next);
       await checkAuthState(req as Request & RequestWithUser, res, next);
       await updateUserProfile(req as Request & RequestWithUser, res);
     } catch (error: any | { message: string }) {
@@ -161,13 +171,16 @@ userRouter.post(
   }
 );
 
-userRouter.put("/reset-password", async (req: Request, res: Response) => {
-  try {
-    await resetPassword(req, res);
-  } catch (error: any | { message: string }) {
-    logger.error(`Error in reset password route: ${error.message}`);
-    res.status(500).json({ error: "Internal server error" });
+userRouter.put(
+  "/reset-password/:token",
+  async (req: Request, res: Response) => {
+    try {
+      await resetPassword(req, res);
+    } catch (error: any | { message: string }) {
+      logger.error(`Error in reset password route: ${error.message}`);
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
-});
+);
 
 export default userRouter;

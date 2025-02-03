@@ -476,7 +476,7 @@ const passwordResetEmailTemplate = `<!DOCTYPE html>
 
             <p style="font-size: 14px;">
                 If the button above doesn’t work, you can copy and paste the following link into your browser: <br>
-                [reset_link]
+                <[reset_link]>
             </p>
         </div>
 

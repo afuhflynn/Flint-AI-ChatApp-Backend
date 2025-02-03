@@ -39,7 +39,6 @@ app.use(
   })
 );
 app.use(express.urlencoded({ extended: true }));
-app.set("trust proxy", 1);
 app.use(morgan("dev"));
 
 // Passport js init
@@ -67,9 +66,7 @@ app.get(
     try {
       githubLogin(req as Request & RequestWithUser, res);
     } catch (error: any | { message: string }) {
-      logger.error(
-        `Error login in with github: ${error.message} - by ${req.user.username}`
-      );
+      logger.error(`Error login in with github: ${error.message}`);
       res.status(500).json({ message: error });
     }
   }

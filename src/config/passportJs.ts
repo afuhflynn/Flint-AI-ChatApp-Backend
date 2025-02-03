@@ -2,7 +2,6 @@
 import passport, { DoneCallback } from "passport";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import { config } from "dotenv";
 import User from "../models/user.model.js";
 import generateTokens from "../utils/generateTokens.js";
@@ -97,31 +96,6 @@ const gitHubVerifyCallback = async (
   }
 };
 
-// JWT Strategy for Stateless Authentication
-const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.ACCESS_TOKEN_SECRET!,
-};
-
-const jwtVerifyCallback = async (
-  jwt_payload: {
-    id: string | unknown;
-    email: string;
-    username: string;
-    role: string;
-  },
-  done: DoneCallback
-) => {
-  try {
-    const user = await User.findById(jwt_payload.id);
-    if (user) return done(null, user);
-    return done(null, false);
-  } catch (error: any | { message: string }) {
-    logger.error(`Error Verifying accessToken: ${error.message}`);
-    return done(error, false);
-  }
-};
-
 // Register Strategies
 passport.use(
   new LocalStrategy(
@@ -139,6 +113,5 @@ passport.use(
     gitHubVerifyCallback
   )
 );
-passport.use(new JwtStrategy(jwtOptions, jwtVerifyCallback));
 
 export default passport;
