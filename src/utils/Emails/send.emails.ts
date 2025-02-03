@@ -11,6 +11,7 @@ import { config } from "dotenv";
 import { sendEmail } from "../../config/emailSenderSetup.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import logger from "../loger.js";
 
 config();
 
@@ -56,7 +57,7 @@ const sendVerificationEmail = async (
       attachments
     );
   } catch (error: any | { message: string }) {
-    console.error(error.message);
+    logger.error(`Error sending verification email: ${error.message}`);
   }
 };
 
@@ -88,7 +89,7 @@ const sendNotificationEmail = async (
       attachments
     );
   } catch (error: any | { message: string }) {
-    console.error(error.message);
+    logger.error(`Error sending notification email: ${error.message}`);
   }
 };
 const sendWelcomeEmail = async (
@@ -105,7 +106,7 @@ const sendWelcomeEmail = async (
     //Send email content
     await sendEmail(email, "Welcome Email", newEmail, headers, attachments);
   } catch (error: any | { message: string }) {
-    console.error(error.message);
+    logger.error(`Error sending welcome email: ${error.message}`);
   }
 };
 const sendLogoutEmail = async (
@@ -125,7 +126,7 @@ const sendLogoutEmail = async (
     //Send email content
     await sendEmail(email, "Logout Email", newEmail, headers, attachments);
   } catch (error: any | { message: string }) {
-    console.error(error.message);
+    logger.error(`Error sending account logout email: ${error.message}`);
   }
 };
 const sendPasswordResetEmail = async (
@@ -150,7 +151,7 @@ const sendPasswordResetEmail = async (
       attachments
     );
   } catch (error: any | { message: string }) {
-    console.error(error.message);
+    logger.error(`Error sending password reset email: ${error.message}`);
   }
 };
 const sendAccountDeleteEmail = async (
@@ -177,7 +178,7 @@ const sendAccountDeleteEmail = async (
       attachments
     );
   } catch (error: any | { message: string }) {
-    console.error(error.message);
+    logger.error(`Error sending account delete email: ${error.message}`);
   }
 };
 const sendAccountDeleteAdminNotificationEmail = async (
@@ -190,10 +191,6 @@ const sendAccountDeleteAdminNotificationEmail = async (
     "X-Category": string;
   }
 ) => {
-  // <strong>Activity:</strong> [activity_description]<br>
-  //               <strong>Reason:</strong> [account_delete_reason]<br>
-  //               <strong>Time:</strong> [activity_time]<br>
-  //               <strong>Author:</strong> [activity_author]<br>
   try {
     const newEmail: string = adminNotificationTemplateForAccountDelete
       .replace("[user_name]", "Afuh Flyine")
@@ -213,7 +210,9 @@ const sendAccountDeleteAdminNotificationEmail = async (
       attachments
     );
   } catch (error: any | { message: string }) {
-    console.error(error.message);
+    logger.error(
+      `Error sending user account delete notification to admin email: ${error.message}`
+    );
   }
 };
 

@@ -7,6 +7,7 @@ import { config } from "dotenv";
 import User from "../models/user.model.js";
 import generateTokens from "../utils/generateTokens.js";
 import { GitHubProfileTypes, VerifyFunction } from "../TYPES.js";
+import logger from "../utils/loger.js";
 
 config();
 
@@ -46,7 +47,8 @@ const localVerifyCallback: VerifyFunction = async (
     await foundUser.save();
 
     return done(null, foundUser);
-  } catch (error) {
+  } catch (error: any | { message: string }) {
+    logger.error(`Error login in user: ${error.message}`);
     return done(error, false);
   }
 };
@@ -58,7 +60,7 @@ const gitHubVerifyCallback = async (
   profile: GitHubProfileTypes,
   done: DoneCallback
 ) => {
-  console.log(accessToken, refreshToken);
+  console.log(accessToken, refreshToken); // Just logging to console since I won't make use of this data
   try {
     let user = await User.findOne({
       githubId: profile.id,
@@ -67,8 +69,10 @@ const gitHubVerifyCallback = async (
     if (!user) {
       // Check if username and email already exists
       const foundUser = await User.findOne({
-        username: profile.username,
-        email: profile?.emails?.[0]?.value,
+        $or: [
+          { username: profile.username },
+          { email: profile?.emails?.[0]?.value },
+        ],
       });
       if (!foundUser) {
         const newUser = new User({
@@ -87,7 +91,8 @@ const gitHubVerifyCallback = async (
     }
 
     return done(null, user);
-  } catch (error) {
+  } catch (error: any | { message: string }) {
+    logger.error(`Error login in user with github: ${error.message}`);
     return done(error, false);
   }
 };
@@ -111,7 +116,8 @@ const jwtVerifyCallback = async (
     const user = await User.findById(jwt_payload.id);
     if (user) return done(null, user);
     return done(null, false);
-  } catch (error) {
+  } catch (error: any | { message: string }) {
+    logger.error(`Error Verifying accessToken: ${error.message}`);
     return done(error, false);
   }
 };

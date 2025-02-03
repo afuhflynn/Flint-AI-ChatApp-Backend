@@ -18,6 +18,7 @@ import generateVerificationCode from "../utils/generateVerificationCode.js";
 import generateResetToken from "../utils/generateResetToken.js";
 import { format } from "date-fns";
 import generateTokens from "../utils/generateTokens.js";
+import logger from "../utils/loger.js";
 // Register user
 export const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, password, email } = req.body;
@@ -61,7 +62,7 @@ export const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, func
         });
     }
     catch (error) {
-        console.log(error);
+        logger.error(`Error signing up user: ${error.message}`);
         return res
             .status(500)
             .json({ message: "Internal server error. Please try again later" });
@@ -88,7 +89,10 @@ export const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
         }
     }
     catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        logger.error(`Error signing in user: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Logout user
@@ -103,7 +107,10 @@ export const logoutUser = (req, res) => __awaiter(void 0, void 0, void 0, functi
         return res.status(200).json({ message: "Logged out successfully" });
     }
     catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        logger.error(`Error signing out user: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Send user account delete request for warning
@@ -120,7 +127,10 @@ export const sendDeleteAccountRequest = (req, res) => __awaiter(void 0, void 0, 
         return res.status(200).json({ message: "Account deletion request sent" });
     }
     catch (error) {
-        return res.status(500).json({ error: "Internal server error" });
+        logger.error(`Error sending account delete request: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Delete user account
@@ -150,7 +160,10 @@ export const deleteUserAccount = (req, res) => __awaiter(void 0, void 0, void 0,
             .json({ message: "User account deleted successfully" });
     }
     catch (error) {
-        return res.status(500).json({ error: "Internal server error" });
+        logger.error(`Error deleting user account: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Get user profile
@@ -163,7 +176,10 @@ export const getUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, fu
         res.status(200).json(user);
     }
     catch (error) {
-        res.status(500).json({ error: "Internal server error" });
+        logger.error(`Error fetching user profile: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Update user profile
@@ -206,7 +222,10 @@ export const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0,
         res.status(200).json(updatedUser);
     }
     catch (error) {
-        res.status(500).json({ error: "Internal server error" });
+        logger.error(`Error updating user profile: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Verify user account
@@ -215,7 +234,7 @@ export const verifyUserAccountWithCode = (req, res) => __awaiter(void 0, void 0,
     if (!code || code.length < 6)
         return res.status(400).json({
             success: false,
-            message: "You must provide a valid verfication code",
+            message: "You must provide a valid verification code",
         });
     try {
         // Find for a user with verification code that has not expired
@@ -241,7 +260,10 @@ export const verifyUserAccountWithCode = (req, res) => __awaiter(void 0, void 0,
         return res.status(200).json({ message: "Account verified successfully" });
     }
     catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        logger.error(`Error verifying user account with code: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Verify user account
@@ -275,7 +297,10 @@ export const verifyUserAccountWithToken = (req, res) => __awaiter(void 0, void 0
         return res.status(200).json({ message: "Account verified successfully" });
     }
     catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        logger.error(`Error verifying user account with token: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Resend verification code
@@ -312,7 +337,10 @@ export const resendVerificationCode = (req, res) => __awaiter(void 0, void 0, vo
         return res.status(200).json({ message: "Verification email sent" });
     }
     catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        logger.error(`Error resending verification email: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Request to reset password
@@ -338,7 +366,10 @@ export const requestPasswordReset = (req, res) => __awaiter(void 0, void 0, void
         return res.status(200).json({ message: "Password reset email sent" });
     }
     catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        logger.error(`Error sending password reset request: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Reset password
@@ -367,7 +398,10 @@ export const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, fun
         return res.status(200).json({ message: "Password reset successfully" });
     }
     catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        logger.error(`Error resetting user password: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Check auth state
@@ -382,7 +416,10 @@ export const checkAuthState = (req, res, next) => __awaiter(void 0, void 0, void
             next();
     }
     catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        logger.error(`Error Checking user auth state: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // Handle github login
@@ -417,7 +454,10 @@ export const githubLogin = (req, res) => __awaiter(void 0, void 0, void 0, funct
         }
     }
     catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        logger.error(`Error login in user with github: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 // NOTE: Will work on more endpoints

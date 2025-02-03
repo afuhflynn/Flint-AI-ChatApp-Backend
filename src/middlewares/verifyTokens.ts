@@ -4,6 +4,7 @@ dotenv.config();
 import User from "../models/user.model.js";
 import { Response, Request, NextFunction } from "express";
 import { RequestWithUser } from "../TYPES.js";
+import logger from "../utils/loger.js";
 
 const verifyTokens = async (
   req: Request & RequestWithUser,
@@ -51,11 +52,11 @@ const verifyTokens = async (
         next();
       }
     );
-  } catch (error) {
-    const err = error as Error;
-    res.status(500).json({
-      message: err.message || "Internal server error",
-    });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error verifying user token: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 

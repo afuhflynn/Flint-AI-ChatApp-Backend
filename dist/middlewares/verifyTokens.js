@@ -11,6 +11,7 @@ import jwt from "jsonwebtoken";
 import * as dotenv from "dotenv";
 dotenv.config();
 import User from "../models/user.model.js";
+import logger from "../utils/loger.js";
 const verifyTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const sentCookie = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.token;
@@ -48,10 +49,10 @@ const verifyTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         });
     }
     catch (error) {
-        const err = error;
-        res.status(500).json({
-            message: err.message || "Internal server error",
-        });
+        logger.error(`Error verifying user token: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
     }
 });
 export default verifyTokens;

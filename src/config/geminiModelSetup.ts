@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
+import logger from "../utils/loger.js";
 
 // Load env vars
 config();
@@ -37,6 +38,7 @@ const genAIEndPoint = async (
     const aiResponse = await model.generateContent(responseData);
     result = aiResponse.response.text();
   } catch (error: any | { message: string }) {
+    logger.error(`Error generating ai response: ${error.message}`);
     if (error) {
       result = "An error occured. Please check your internet connection!";
     }
@@ -53,6 +55,7 @@ const genAITitleEndPoint = async (prompt: string): Promise<string> => {
     const aiTitle = await model.generateContent(titleData);
     title = aiTitle.response.text();
   } catch (error: any | { message: string }) {
+    logger.error(`Error generating ai response: ${error.message}`);
     if (error) {
       title = "An error occured. Please check your internet connection!";
     }

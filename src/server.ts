@@ -66,7 +66,10 @@ app.get(
   async (req: Request, res: Response) => {
     try {
       githubLogin(req as Request & RequestWithUser, res);
-    } catch (error) {
+    } catch (error: any | { message: string }) {
+      logger.error(
+        `Error login in with github: ${error.message} - by ${req.user.username}`
+      );
       res.status(500).json({ message: error });
     }
   }

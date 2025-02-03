@@ -12,6 +12,7 @@ import { config } from "dotenv";
 import { sendEmail } from "../../config/emailSenderSetup.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import logger from "../loger.js";
 config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,7 +32,7 @@ const sendVerificationEmail = (code, email, username, token, headers) => __await
         yield sendEmail(email, "Verification Email", newEmail, headers, attachments);
     }
     catch (error) {
-        console.error(error.message);
+        logger.error(`Error sending verification email: ${error.message}`);
     }
 });
 const sendNotificationEmail = (activity, email, username, time, author, headers) => __awaiter(void 0, void 0, void 0, function* () {
@@ -45,7 +46,7 @@ const sendNotificationEmail = (activity, email, username, time, author, headers)
         yield sendEmail(email, "Notification Email", newEmail, headers, attachments);
     }
     catch (error) {
-        console.error(error.message);
+        logger.error(`Error sending notification email: ${error.message}`);
     }
 });
 const sendWelcomeEmail = (email, username, headers) => __awaiter(void 0, void 0, void 0, function* () {
@@ -57,7 +58,7 @@ const sendWelcomeEmail = (email, username, headers) => __awaiter(void 0, void 0,
         yield sendEmail(email, "Welcome Email", newEmail, headers, attachments);
     }
     catch (error) {
-        console.error(error.message);
+        logger.error(`Error sending welcome email: ${error.message}`);
     }
 });
 const sendLogoutEmail = (email, username, headers) => __awaiter(void 0, void 0, void 0, function* () {
@@ -69,7 +70,7 @@ const sendLogoutEmail = (email, username, headers) => __awaiter(void 0, void 0, 
         yield sendEmail(email, "Logout Email", newEmail, headers, attachments);
     }
     catch (error) {
-        console.error(error.message);
+        logger.error(`Error sending account logout email: ${error.message}`);
     }
 });
 const sendPasswordResetEmail = (email, username, resetUrl, headers) => __awaiter(void 0, void 0, void 0, function* () {
@@ -82,7 +83,7 @@ const sendPasswordResetEmail = (email, username, resetUrl, headers) => __awaiter
         yield sendEmail(email, "Password Reset Email", newEmail, headers, attachments);
     }
     catch (error) {
-        console.error(error.message);
+        logger.error(`Error sending password reset email: ${error.message}`);
     }
 });
 const sendAccountDeleteEmail = (email, username, deleteUrl, headers) => __awaiter(void 0, void 0, void 0, function* () {
@@ -97,14 +98,10 @@ const sendAccountDeleteEmail = (email, username, deleteUrl, headers) => __awaite
         yield sendEmail(email, "Account Delete Email", newEmail, headers, attachments);
     }
     catch (error) {
-        console.error(error.message);
+        logger.error(`Error sending account delete email: ${error.message}`);
     }
 });
 const sendAccountDeleteAdminNotificationEmail = (email, username, activityDescription, accountDeleteReason, time, headers) => __awaiter(void 0, void 0, void 0, function* () {
-    // <strong>Activity:</strong> [activity_description]<br>
-    //               <strong>Reason:</strong> [account_delete_reason]<br>
-    //               <strong>Time:</strong> [activity_time]<br>
-    //               <strong>Author:</strong> [activity_author]<br>
     try {
         const newEmail = adminNotificationTemplateForAccountDelete
             .replace("[user_name]", "Afuh Flyine")
@@ -118,7 +115,7 @@ const sendAccountDeleteAdminNotificationEmail = (email, username, activityDescri
         yield sendEmail(adminEmail, "Account Delete Email", newEmail, headers, attachments);
     }
     catch (error) {
-        console.error(error.message);
+        logger.error(`Error sending user account delete notification to admin email: ${error.message}`);
     }
 });
 export { sendVerificationEmail, sendNotificationEmail, sendWelcomeEmail, sendLogoutEmail, sendPasswordResetEmail, sendAccountDeleteEmail, sendAccountDeleteAdminNotificationEmail, };

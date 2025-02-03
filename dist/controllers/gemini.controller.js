@@ -11,10 +11,13 @@ import { genAIEndPoint, genAITitleEndPoint, } from "../config/geminiModelSetup.j
 import crypto from "node:crypto";
 import User from "../models/user.model.js";
 import Chat from "../models/chats.model.js";
+import logger from "../utils/loger.js";
 // General Variable to store ai response to ensure proper realtime response on the frontend
 let AI_RESPONSE = "";
 // NOTE: Delete old chats after 100 days
 // Handle user chats
+// NOTE: Protected handlers
+// Saves a new prompt to an existing conversation or creates a new one
 export const handleUserChats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { chatID, prompt } = req.body;
     if (!prompt)
@@ -112,10 +115,12 @@ export const handleUserChats = (req, res) => __awaiter(void 0, void 0, void 0, f
         }
     }
     catch (error) {
+        logger.error(`Error saving user chat: ${error.message}`);
         return res.status(500).json({ message: "Internal server error" });
     }
 });
 // Handle gemini chats
+//  Gets the gemini response in real time
 export const handleGeminiChats = (req, res, prompt) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Check if chat is new and modify user db chat db
@@ -126,17 +131,19 @@ export const handleGeminiChats = (req, res, prompt) => __awaiter(void 0, void 0,
         if (foundChats) {
             const newAIResponse = yield genAIEndPoint(prompt);
             AI_RESPONSE = newAIResponse;
+            return res.status(200).json({ message: AI_RESPONSE });
         }
         else {
-            return res.status(400).json({ message: "An error occured" });
+            return res.status(400).json({ message: "An error occurred" });
         }
-        return res.status(200).json({ message: AI_RESPONSE });
     }
     catch (error) {
+        logger.error(`Error getting gemini response: ${error.message}`);
         return res.status(500).json({ message: "Internal server error" });
     }
 });
 // Handle save gemini chats
+// Saves the completed gemini response to an existing conversation
 export const handleSaveGeminiChats = (req, res, chatID) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Check if chat is new and modify user db chat db
@@ -145,10 +152,10 @@ export const handleSaveGeminiChats = (req, res, chatID) => __awaiter(void 0, voi
             userName: req.user.username,
         });
         if (!foundChats)
-            return res.status(400).json({ message: "An error occured" });
+            return res.status(400).json({ message: "An error occurred" });
         const currentConversation = foundChats.chats.find((conversation) => conversation.id === chatID);
         if (!currentConversation)
-            return res.status(400).json({ message: "An error occured" });
+            return res.status(400).json({ message: "An error occurred" });
         currentConversation.conversations.push({
             role: "model",
             parts: [
@@ -168,6 +175,22 @@ export const handleSaveGeminiChats = (req, res, chatID) => __awaiter(void 0, voi
         return res.status(200).json({ message: "Response saved successfully!" });
     }
     catch (error) {
+        logger.error(`Error saving gemini response to db: ${error.message}`);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+});
+// NOTE: Unprotected handlers
+// Simply gets a response with no complicated work done
+export const handleGeminiResponse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { prompt } = req.body;
+        if (!prompt)
+            return res.status(400).json({ message: "A prompt is expected" });
+        const newAIResponse = yield genAIEndPoint(prompt);
+        return res.status(200).json({ message: newAIResponse });
+    }
+    catch (error) {
+        logger.error(`Error generating gemini response: ${error.message}`);
         return res.status(500).json({ message: "Internal server error" });
     }
 });

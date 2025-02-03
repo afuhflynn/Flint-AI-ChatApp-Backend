@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import emailTransporter from "./emailTransporter.js";
 import { config } from "dotenv";
+import logger from "../utils/loger.js";
 // Load env vars
 config();
 const from = `Afuh Flyine from Flintai ${process.env.SENDER_EMAIL}`;
@@ -23,8 +24,10 @@ export const sendEmail = (to, subject, htmlContent, headers, attachments) => __a
             headers: headers,
         });
         console.log("Email sent successfully!");
+        logger.error(`Email sent successfully! to ${to}`);
     }
     catch (error) {
+        logger.error(`Error sending email: ${error.message} - to ${to}`);
         console.error("Error sending email:", error);
     }
 });

@@ -15,6 +15,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import { config } from "dotenv";
 import User from "../models/user.model.js";
 import generateTokens from "../utils/generateTokens.js";
+import logger from "../utils/loger.js";
 config();
 // Verify callback for Local Strategy (Email/Password Login)
 const localVerifyCallback = (username, password, done) => __awaiter(void 0, void 0, void 0, function* () {
@@ -36,13 +37,14 @@ const localVerifyCallback = (username, password, done) => __awaiter(void 0, void
         return done(null, foundUser);
     }
     catch (error) {
+        logger.error(`Error login in user: ${error.message}`);
         return done(error, false);
     }
 });
 /// GitHub OAuth callback
 const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c, _d;
-    console.log(accessToken, refreshToken);
+    console.log(accessToken, refreshToken); // Just logging to console since I won't make use of this data
     try {
         let user = yield User.findOne({
             githubId: profile.id,
@@ -50,8 +52,10 @@ const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awa
         if (!user) {
             // Check if username and email already exists
             const foundUser = yield User.findOne({
-                username: profile.username,
-                email: (_b = (_a = profile === null || profile === void 0 ? void 0 : profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value,
+                $or: [
+                    { username: profile.username },
+                    { email: (_b = (_a = profile === null || profile === void 0 ? void 0 : profile.emails) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.value },
+                ],
             });
             if (!foundUser) {
                 const newUser = new User({
@@ -71,6 +75,7 @@ const gitHubVerifyCallback = (accessToken, refreshToken, profile, done) => __awa
         return done(null, user);
     }
     catch (error) {
+        logger.error(`Error login in user with github: ${error.message}`);
         return done(error, false);
     }
 });
@@ -87,6 +92,7 @@ const jwtVerifyCallback = (jwt_payload, done) => __awaiter(void 0, void 0, void 
         return done(null, false);
     }
     catch (error) {
+        logger.error(`Error Verifying accessToken: ${error.message}`);
         return done(error, false);
     }
 });

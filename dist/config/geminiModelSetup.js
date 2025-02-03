@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
+import logger from "../utils/loger.js";
 // Load env vars
 config();
 const genAI = new GoogleGenerativeAI(String(process.env.GOOGLE_GEMINI_API_KEY));
@@ -29,6 +30,7 @@ const genAIEndPoint = (prompt, chatHistory) => __awaiter(void 0, void 0, void 0,
         result = aiResponse.response.text();
     }
     catch (error) {
+        logger.error(`Error generating ai response: ${error.message}`);
         if (error) {
             result = "An error occured. Please check your internet connection!";
         }
@@ -46,6 +48,7 @@ const genAITitleEndPoint = (prompt) => __awaiter(void 0, void 0, void 0, functio
         title = aiTitle.response.text();
     }
     catch (error) {
+        logger.error(`Error generating ai response: ${error.message}`);
         if (error) {
             title = "An error occured. Please check your internet connection!";
         }

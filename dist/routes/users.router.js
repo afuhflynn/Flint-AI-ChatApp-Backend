@@ -15,6 +15,7 @@ const userRouter = Router();
 const app = express();
 // Passport js init
 import "../config/passportJs.js";
+import logger from "../utils/loger.js";
 app.use(passport.initialize());
 app.use(passport.session());
 userRouter.post("/sign-up", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -22,7 +23,7 @@ userRouter.post("/sign-up", (req, res) => __awaiter(void 0, void 0, void 0, func
         yield registerUser(req, res);
     }
     catch (error) {
-        console.error("Error in sign-up route:", error);
+        logger.error(`Error in sign up route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -34,7 +35,7 @@ userRouter.post("/sign-in", passport.authenticate("local", {
         loginUser(req, res);
     }
     catch (error) {
-        console.error("Error in sign-in route:", error);
+        logger.error(`Error in sign in route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -43,7 +44,7 @@ userRouter.post("/log-out", (req, res) => __awaiter(void 0, void 0, void 0, func
         yield logoutUser(req, res);
     }
     catch (error) {
-        console.error("Error in log-out route:", error);
+        logger.error(`Error in log out route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -53,7 +54,7 @@ userRouter.post("/account-delete-request", (req, res, next) => __awaiter(void 0,
         yield sendDeleteAccountRequest(req, res);
     }
     catch (error) {
-        console.error("Error in account delete request route:", error);
+        logger.error(`Error in account delete request route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -63,7 +64,7 @@ userRouter.delete("/delete-account", (req, res, next) => __awaiter(void 0, void 
         yield deleteUserAccount(req, res);
     }
     catch (error) {
-        console.error("Error in account delete route:", error);
+        logger.error(`Error in account delete route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -73,7 +74,7 @@ userRouter.get("/get-profile", (req, res, next) => __awaiter(void 0, void 0, voi
         yield getUserProfile(req, res);
     }
     catch (error) {
-        console.error("Error in user profile route:", error);
+        logger.error(`Error in get user profile route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -83,7 +84,7 @@ userRouter.put("/update-profile", (req, res, next) => __awaiter(void 0, void 0, 
         yield updateUserProfile(req, res);
     }
     catch (error) {
-        console.error("Error in update profile route:", error);
+        logger.error(`Error in update user profile route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -92,7 +93,7 @@ userRouter.post("/verify-account-code", (req, res) => __awaiter(void 0, void 0, 
         yield verifyUserAccountWithCode(req, res);
     }
     catch (error) {
-        console.error("Error in verify account with code route:", error);
+        logger.error(`Error in verify account with code route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -101,7 +102,7 @@ userRouter.post("/verify-account-token/:token", (req, res) => __awaiter(void 0, 
         yield verifyUserAccountWithToken(req, res);
     }
     catch (error) {
-        console.error("Error in verify account with token route:", error);
+        logger.error(`Error in verify account with token route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -110,7 +111,7 @@ userRouter.post("/resend-verification-code", (req, res) => __awaiter(void 0, voi
         yield resendVerificationCode(req, res);
     }
     catch (error) {
-        console.error("Error in resend verification code route:", error);
+        logger.error(`Error in resend verification email route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -119,7 +120,7 @@ userRouter.post("/reset-password-request", (req, res) => __awaiter(void 0, void 
         yield requestPasswordReset(req, res);
     }
     catch (error) {
-        console.error("Error in reset password request route:", error);
+        logger.error(`Error in reset password request route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
@@ -128,7 +129,7 @@ userRouter.put("/reset-password", (req, res) => __awaiter(void 0, void 0, void 0
         yield resetPassword(req, res);
     }
     catch (error) {
-        console.error("Error in reset password route:", error);
+        logger.error(`Error in reset password route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));

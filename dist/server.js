@@ -60,6 +60,7 @@ app.get("/auth/github/callback", passport.authenticate("github", {
         githubLogin(req, res);
     }
     catch (error) {
+        logger.error(`Error login in with github: ${error.message} - by ${req.user.username}`);
         res.status(500).json({ message: error });
     }
 }));

@@ -1,6 +1,7 @@
 import emailTransporter from "./emailTransporter.js";
 import { config } from "dotenv";
 import { Attachment } from "nodemailer/lib/mailer/index.js";
+import logger from "../utils/loger.js";
 
 // Load env vars
 config();
@@ -26,7 +27,9 @@ export const sendEmail = async (
       headers: headers,
     });
     console.log("Email sent successfully!");
-  } catch (error) {
+    logger.error(`Email sent successfully! to ${to}`);
+  } catch (error: any | { message: string }) {
+    logger.error(`Error sending email: ${error.message} - to ${to}`);
     console.error("Error sending email:", error);
   }
 };

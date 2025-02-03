@@ -18,6 +18,7 @@ import { RequestWithUser } from "../TYPES.js";
 import generateResetToken from "../utils/generateResetToken.js";
 import { format } from "date-fns";
 import generateTokens from "../utils/generateTokens.js";
+import logger from "../utils/loger.js";
 
 // Register user
 export const registerUser = async (req: Request, res: Response) => {
@@ -62,8 +63,8 @@ export const registerUser = async (req: Request, res: Response) => {
     return res.status(201).json({
       message: "User registered successfully. Verification email sent.",
     });
-  } catch (error) {
-    console.log(error);
+  } catch (error: any | { message: string }) {
+    logger.error(`Error signing up user: ${error.message}`);
     return res
       .status(500)
       .json({ message: "Internal server error. Please try again later" });
@@ -101,8 +102,11 @@ export const loginUser = async (
       );
       return res.status(200).json({ message: "Logged in successfully" });
     }
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error signing in user: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -126,8 +130,11 @@ export const logoutUser = async (
     // Clear cookies
     res.clearCookie("token");
     return res.status(200).json({ message: "Logged out successfully" });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error signing out user: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -152,8 +159,11 @@ export const sendDeleteAccountRequest = async (
     );
 
     return res.status(200).json({ message: "Account deletion request sent" });
-  } catch (error) {
-    return res.status(500).json({ error: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error sending account delete request: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -202,8 +212,11 @@ export const deleteUserAccount = async (
     return res
       .status(200)
       .json({ message: "User account deleted successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error deleting user account: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -218,8 +231,11 @@ export const getUserProfile = async (
       return res.status(403).json({ error: "User not found" });
     }
     res.status(200).json(user);
-  } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error fetching user profile: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -268,8 +284,11 @@ export const updateUserProfile = async (
       { "X-Category": "Profile Update Notification" }
     );
     res.status(200).json(updatedUser);
-  } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error updating user profile: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -282,7 +301,7 @@ export const verifyUserAccountWithCode = async (
   if (!code || code.length < 6)
     return res.status(400).json({
       success: false,
-      message: "You must provide a valid verfication code",
+      message: "You must provide a valid verification code",
     });
   try {
     // Find for a user with verification code that has not expired
@@ -306,8 +325,11 @@ export const verifyUserAccountWithCode = async (
       "X-Category": "Welcome Email",
     });
     return res.status(200).json({ message: "Account verified successfully" });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error verifying user account with code: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 // Verify user account
@@ -342,8 +364,11 @@ export const verifyUserAccountWithToken = async (
       "X-Category": "Welcome Email",
     });
     return res.status(200).json({ message: "Account verified successfully" });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error verifying user account with token: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -379,8 +404,11 @@ export const resendVerificationCode = async (req: Request, res: Response) => {
       "X-Category": "Verification Email",
     });
     return res.status(200).json({ message: "Verification email sent" });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error resending verification email: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -410,8 +438,11 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       }
     );
     return res.status(200).json({ message: "Password reset email sent" });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error sending password reset request: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -446,8 +477,11 @@ export const resetPassword = async (req: Request, res: Response) => {
       { "X-Category": "Password Reset Notification" }
     );
     return res.status(200).json({ message: "Password reset successfully" });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error resetting user password: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -464,8 +498,11 @@ export const checkAuthState = async (
         .status(401)
         .json({ success: false, message: "User not found" });
     if (req.isAuthenticated() && !user) next();
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error Checking user auth state: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
@@ -515,8 +552,11 @@ export const githubLogin = async (
     } else {
       return res.status(404).json({ message: "User not found" });
     }
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error: any | { message: string }) {
+    logger.error(`Error login in user with github: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
   }
 };
 
