@@ -39,7 +39,7 @@ export const handleUserChats = async (
 
       // if there is no current ongoing chat or conversation create one
       if (!currentConversation) {
-        const newConversationID = await crypto.randomBytes(60).toString("hex"); // new Conversation id for each prompt
+        const newConversationID = await crypto.randomBytes(16).toString("hex"); // new Conversation id for each prompt
         // Check if chat already exist
         const newTitle = await genAITitleEndPoint(prompt);
         const newConversation = {

@@ -316,14 +316,14 @@ export const refreshHandler = async (
     }
 
     // Find the user by refresh token
-    const foundUser = await User.findOne({ accessToken: sentAccessToken });
+    const foundUser = await User.findOne({ accessToken: sentAccessToken, refreshTokenExpires: { $gt: Date.now()} });
     if (!foundUser) {
-      res.status(403).json({ message: "Invalid access token" });
+      res.status(403).json({ message: "Invalid refresh token" });
     }
 
     if (foundUser) {
       // Verify the refresh token
-      jwt.verify(
+      await jwt.verify(
         foundUser.refreshToken as string,
         process.env.REFRESH_TOKEN_SECRET as string,
         { algorithms: ["HS256"] },
@@ -335,7 +335,7 @@ export const refreshHandler = async (
           }
 
           // Generate a new access token
-          const newAccessToken = jwt.sign(
+          const newAccessToken = await jwt.sign(
             {
               id: foundUser._id,
               username: foundUser.username,

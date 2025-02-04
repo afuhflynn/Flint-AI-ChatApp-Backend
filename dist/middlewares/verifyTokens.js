@@ -33,7 +33,7 @@ const verifyTokens = (req, res, next) => {
                 });
                 return;
             }
-            jwt.verify(sentCookie, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => {
+            yield jwt.verify(sentCookie, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => {
                 if (error) {
                     res.status(403).json({
                         message: "Invalid or expired session",

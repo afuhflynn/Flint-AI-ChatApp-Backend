@@ -248,20 +248,20 @@ export const refreshHandler = (req, res) => __awaiter(void 0, void 0, void 0, fu
             res.status(401).json({ message: "Login required to continue" });
         }
         // Find the user by refresh token
-        const foundUser = yield User.findOne({ accessToken: sentAccessToken });
+        const foundUser = yield User.findOne({ accessToken: sentAccessToken, refreshTokenExpires: { $gt: Date.now() } });
         if (!foundUser) {
-            res.status(403).json({ message: "Invalid access token" });
+            res.status(403).json({ message: "Invalid refresh token" });
         }
         if (foundUser) {
             // Verify the refresh token
-            jwt.verify(foundUser.refreshToken, process.env.REFRESH_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => __awaiter(void 0, void 0, void 0, function* () {
+            yield jwt.verify(foundUser.refreshToken, process.env.REFRESH_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => __awaiter(void 0, void 0, void 0, function* () {
                 if (error) {
                     return res
                         .status(403)
                         .json({ message: "Invalid or expired refresh token" });
                 }
                 // Generate a new access token
-                const newAccessToken = jwt.sign({
+                const newAccessToken = yield jwt.sign({
                     id: foundUser._id,
                     username: foundUser.username,
                     email: foundUser.email,

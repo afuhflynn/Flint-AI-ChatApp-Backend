@@ -33,7 +33,7 @@ const verifyTokens = (req: Request, res: Response, next: NextFunction) => {
         return;
       }
 
-      jwt.verify(
+      await jwt.verify(
         sentCookie,
         process.env.ACCESS_TOKEN_SECRET as string,
         { algorithms: ["HS256"] },

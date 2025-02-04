@@ -33,7 +33,7 @@ export const handleUserChats = (req, res) => __awaiter(void 0, void 0, void 0, f
             const currentConversation = foundChats.chats.find((conversation) => conversation.id === chatID);
             // if there is no current ongoing chat or conversation create one
             if (!currentConversation) {
-                const newConversationID = yield crypto.randomBytes(60).toString("hex"); // new Conversation id for each prompt
+                const newConversationID = yield crypto.randomBytes(16).toString("hex"); // new Conversation id for each prompt
                 // Check if chat already exist
                 const newTitle = yield genAITitleEndPoint(prompt);
                 const newConversation = {
