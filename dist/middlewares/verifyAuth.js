@@ -11,30 +11,35 @@ import User from "../models/user.model.js";
 import logger from "../utils/loger.js";
 // Check auth state
 export const checkAuthState = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const user = yield User.findOne({
-            _id: req.user.id,
-            username: req.user.username,
-            isVerified: true,
-        });
-        if (!user)
-            return res.status(401).json({
-                success: false,
-                message: "Please confirm your email and login to your account",
+    const checkAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const user = yield User.findOne({
+                _id: req.user.id,
+                username: req.user.username,
+                email: req.user.email,
+                role: req.user.role,
+                isVerified: true,
             });
-        // empty the req user object again if it gets cleared
-        req.user = {};
-        req.user.id = user._id;
-        req.user.username = user.username;
-        req.user.email = user.email;
-        req.user.role = user.role;
-        next();
-    }
-    catch (error) {
-        logger.error(`Error Checking user auth state: ${error.message}`);
-        return res
-            .status(500)
-            .json({ message: "Internal server error. Please try again later" });
-    }
+            if (!user)
+                return res.status(401).json({
+                    success: false,
+                    message: "Please confirm your email and login to your account",
+                });
+            // First empty the req user object
+            req.user = {};
+            req.user.id = user._id;
+            req.user.username = user.username;
+            req.user.email = user.email;
+            req.user.role = user.role;
+            next();
+        }
+        catch (error) {
+            logger.error(`Error Checking user auth state: ${error.message}`);
+            return res
+                .status(500)
+                .json({ message: "Internal server error. Please try again later" });
+        }
+    });
+    checkAuth(req, res, next);
 });
 //# sourceMappingURL=verifyAuth.js.map

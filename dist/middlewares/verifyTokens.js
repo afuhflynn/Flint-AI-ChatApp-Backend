@@ -12,56 +12,52 @@ import * as dotenv from "dotenv";
 dotenv.config();
 import User from "../models/user.model.js";
 import logger from "../utils/loger.js";
-const verifyTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const sentCookie = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.token;
-    try {
-        if (!sentCookie) {
-            res.status(401).json({
-                message: "Please login and verify your account. Or create one",
+const verifyTokens = (req, res, next) => {
+    const verify = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        const sentCookie = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.token;
+        try {
+            if (!sentCookie) {
+                res.status(401).json({
+                    message: "Please login and verify your account. Or create one",
+                });
+                return; // Exit the function without doing anything
+            }
+            const foundUser = yield User.findOne({
+                accessToken: sentCookie,
+                accessTokenExpires: { $gt: Date.now() },
             });
-            return; // Exit the function without doing anything
-        }
-        const foundUser = yield User.findOne({
-            accessToken: sentCookie,
-            accessTokenExpires: { $gt: Date.now() },
-        });
-        if (!foundUser) {
-            res.status(403).json({
-                message: "Invalid or expired token",
-            });
-            return;
-        }
-        jwt.verify(sentCookie, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, decoded) => {
-            if (error) {
+            if (!foundUser) {
                 res.status(403).json({
-                    message: "Invalid or expired session",
+                    message: "Invalid or expired token",
                 });
                 return;
             }
-            // Check the id compatibility
-            if (foundUser._id !== decoded.id) {
-                res.status(403).json({
-                    message: "Invalid or expired session",
-                });
-                return;
-            }
-            // First empty the req user object
-            req.user = {};
-            req.user.id = decoded.id;
-            req.user.username = decoded.username;
-            req.user.email = decoded.email;
-            req.user.role = decoded.role;
-            next();
-        });
-    }
-    catch (error) {
-        logger.error(`Error verifying user token: ${error.message}`);
-        res
-            .status(500)
-            .json({ message: "Internal server error. Please try again later" });
-        return; // Just exit without doing anything
-    }
-});
+            jwt.verify(sentCookie, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => {
+                if (error) {
+                    res.status(403).json({
+                        message: "Invalid or expired session",
+                    });
+                    return;
+                }
+                // First empty the req user object
+                req.user = {};
+                req.user.id = foundUser._id;
+                req.user.username = foundUser.username;
+                req.user.email = foundUser.email;
+                req.user.role = foundUser.role;
+                next();
+            });
+        }
+        catch (error) {
+            logger.error(`Error verifying user token: ${error.message}`);
+            res
+                .status(500)
+                .json({ message: "Internal server error. Please try again later" });
+            return; // Just exit without doing anything
+        }
+    });
+    verify(req, res, next);
+};
 export default verifyTokens;
 //# sourceMappingURL=verifyTokens.js.map

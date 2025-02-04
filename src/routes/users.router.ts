@@ -54,15 +54,16 @@ userRouter.post(
   }
 );
 
+// NOTE: Protected routes
 userRouter.post(
   "/log-out",
-  async (req: Request, res: Response, next: NextFunction) => {
+  verifyTokens,
+  checkAuthState,
+  async (req: Request, res: Response) => {
     try {
-      verifyTokens(req as Request & RequestWithUser, res, next);
-      checkAuthState(req as Request & RequestWithUser, res, next);
       logoutUser(req as Request & RequestWithUser, res);
     } catch (error: any | { message: string }) {
-      logger.error(`Error in log out route: ${error.message}`);
+      logger.error(`Error in account delete route: ${error.message}`);
       res.status(500).json({ error: "Internal server error" });
     }
   }
@@ -70,13 +71,13 @@ userRouter.post(
 
 userRouter.post(
   "/account-delete-request",
-  async (req: Request, res: Response, next: NextFunction) => {
+  verifyTokens,
+  checkAuthState,
+  async (req: Request, res: Response) => {
     try {
-      verifyTokens(req as Request & RequestWithUser, res, next);
-      checkAuthState(req as Request & RequestWithUser, res, next);
       sendDeleteAccountRequest(req as Request & RequestWithUser, res);
     } catch (error: any | { message: string }) {
-      logger.error(`Error in account delete request route: ${error.message}`);
+      logger.error(`Error in account delete route: ${error.message}`);
       res.status(500).json({ error: "Internal server error" });
     }
   }
@@ -84,10 +85,10 @@ userRouter.post(
 
 userRouter.delete(
   "/delete-account",
-  async (req: Request, res: Response, next: NextFunction) => {
+  verifyTokens,
+  checkAuthState,
+  async (req: Request, res: Response) => {
     try {
-      verifyTokens(req as Request & RequestWithUser, res, next);
-      checkAuthState(req as Request & RequestWithUser, res, next);
       deleteUserAccount(req as Request & RequestWithUser, res);
     } catch (error: any | { message: string }) {
       logger.error(`Error in account delete route: ${error.message}`);
@@ -98,13 +99,13 @@ userRouter.delete(
 
 userRouter.get(
   "/profile",
-  async (req: Request, res: Response, next: NextFunction) => {
+  verifyTokens,
+  checkAuthState,
+  async (req: Request, res: Response) => {
     try {
-      verifyTokens(req as Request & RequestWithUser, res, next);
-      checkAuthState(req as Request & RequestWithUser, res, next);
       getUserProfile(req as Request & RequestWithUser, res);
     } catch (error: any | { message: string }) {
-      logger.error(`Error in get user profile route: ${error.message}`);
+      logger.error(`Error in account delete route: ${error.message}`);
       res.status(500).json({ error: "Internal server error" });
     }
   }
@@ -112,11 +113,13 @@ userRouter.get(
 
 userRouter.post(
   "/refresh-token",
+  verifyTokens,
+  checkAuthState,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       refreshTokens(req as Request & RequestWithUser, res, next);
     } catch (error: any | { message: string }) {
-      logger.error(`Error in refresh token route: ${error.message}`);
+      logger.error(`Error in account delete route: ${error.message}`);
       res.status(500).json({ error: "Internal server error" });
     }
   }
@@ -124,18 +127,19 @@ userRouter.post(
 
 userRouter.put(
   "/update-profile",
-  async (req: Request, res: Response, next: NextFunction) => {
+  verifyTokens,
+  checkAuthState,
+  async (req: Request, res: Response) => {
     try {
-      verifyTokens(req as Request & RequestWithUser, res, next);
-      checkAuthState(req as Request & RequestWithUser, res, next);
       updateUserProfile(req as Request & RequestWithUser, res);
     } catch (error: any | { message: string }) {
-      logger.error(`Error in update user profile route: ${error.message}`);
+      logger.error(`Error in account delete route: ${error.message}`);
       res.status(500).json({ error: "Internal server error" });
     }
   }
 );
 
+// NOTE: Open routes
 userRouter.post("/verify-account-code", async (req: Request, res: Response) => {
   try {
     verifyUserAccountWithCode(req as Request & RequestWithUser, res);

@@ -51,7 +51,7 @@ app.get(
     scope: ["user:email", "user:password"],
     session: false, // Disable session
     failureRedirect: `${process.env.CLIENT_URL}/auth/login-in`,
-    successRedirect: `${process.env.CLIENT_URL}/`,
+    successRedirect: `${process.env.CLIENT_URL}/chat-bot/chats/new-chat`,
   })
 );
 
@@ -85,9 +85,9 @@ app.get("*", (req: Request, res: Response) => {
   logger.error(`404 Error: ${req.originalUrl}`);
 
   if (req.accepts("json")) {
-    res.status(404).json({ message: "Page not found!" });
+    res.status(404).json({ message: "Resource not found!" });
   } else if (req.accepts("text")) {
-    res.status(404).send("Page not found!");
+    res.status(404).send("Resource not found!");
   } else {
     res.status(404).sendFile(path.join(__dirname, "views", "404page.html"));
   }

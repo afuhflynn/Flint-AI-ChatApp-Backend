@@ -242,7 +242,6 @@ export const getUserProfile = async (
     if (!user) {
       return res.status(403).json({ message: "User not found" });
     }
-    console.log(user);
     return res.status(200).json({ user: user });
   } catch (error: any | { message: string }) {
     logger.error(`Error fetching user profile: ${error.message}`);
@@ -618,7 +617,7 @@ export const githubLogin = async (
       });
 
       // Redirect or send response
-      return res.redirect(`${process.env.CLIENT_URL}/`);
+      return res.redirect(`${process.env.CLIENT_URL}/chat-bot/chats/new-chat`);
     } else {
       return res.status(404).json({ message: "User not found" });
     }

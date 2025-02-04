@@ -42,32 +42,27 @@ userRouter.post("/sign-in", passport.authenticate("local", {
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.post("/log-out", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+// NOTE: Protected routes
+userRouter.post("/log-out", verifyTokens, checkAuthState, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        verifyTokens(req, res, next);
-        checkAuthState(req, res, next);
         logoutUser(req, res);
     }
     catch (error) {
-        logger.error(`Error in log out route: ${error.message}`);
+        logger.error(`Error in account delete route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.post("/account-delete-request", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.post("/account-delete-request", verifyTokens, checkAuthState, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        verifyTokens(req, res, next);
-        checkAuthState(req, res, next);
         sendDeleteAccountRequest(req, res);
     }
     catch (error) {
-        logger.error(`Error in account delete request route: ${error.message}`);
+        logger.error(`Error in account delete route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.delete("/delete-account", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.delete("/delete-account", verifyTokens, checkAuthState, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        verifyTokens(req, res, next);
-        checkAuthState(req, res, next);
         deleteUserAccount(req, res);
     }
     catch (error) {
@@ -75,37 +70,34 @@ userRouter.delete("/delete-account", (req, res, next) => __awaiter(void 0, void 
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.get("/profile", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.get("/profile", verifyTokens, checkAuthState, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        verifyTokens(req, res, next);
-        checkAuthState(req, res, next);
         getUserProfile(req, res);
     }
     catch (error) {
-        logger.error(`Error in get user profile route: ${error.message}`);
+        logger.error(`Error in account delete route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.post("/refresh-token", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.post("/refresh-token", verifyTokens, checkAuthState, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         refreshTokens(req, res, next);
     }
     catch (error) {
-        logger.error(`Error in refresh token route: ${error.message}`);
+        logger.error(`Error in account delete route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.put("/update-profile", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.put("/update-profile", verifyTokens, checkAuthState, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        verifyTokens(req, res, next);
-        checkAuthState(req, res, next);
         updateUserProfile(req, res);
     }
     catch (error) {
-        logger.error(`Error in update user profile route: ${error.message}`);
+        logger.error(`Error in account delete route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
+// NOTE: Open routes
 userRouter.post("/verify-account-code", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         verifyUserAccountWithCode(req, res);
