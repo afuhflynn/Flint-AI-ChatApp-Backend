@@ -32,8 +32,15 @@ const verifyTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             });
             return;
         }
-        jwt.verify(sentCookie, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => {
+        jwt.verify(sentCookie, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, decoded) => {
             if (error) {
+                res.status(403).json({
+                    message: "Invalid or expired session",
+                });
+                return;
+            }
+            // Check the id compatibility
+            if (foundUser._id !== decoded.id) {
                 res.status(403).json({
                     message: "Invalid or expired session",
                 });
@@ -41,10 +48,10 @@ const verifyTokens = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             }
             // First empty the req user object
             req.user = {};
-            req.user.id = foundUser._id;
-            req.user.username = foundUser.username;
-            req.user.email = foundUser.email;
-            req.user.role = foundUser.role;
+            req.user.id = decoded.id;
+            req.user.username = decoded.username;
+            req.user.email = decoded.email;
+            req.user.role = decoded.role;
             next();
         });
     }

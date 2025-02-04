@@ -36,8 +36,15 @@ const verifyTokens = async (
       sentCookie,
       process.env.ACCESS_TOKEN_SECRET as string,
       { algorithms: ["HS256"] },
-      (error, _: any) => {
+      (error, decoded: any) => {
         if (error) {
+          res.status(403).json({
+            message: "Invalid or expired session",
+          });
+          return;
+        }
+        // Check the id compatibility
+        if (foundUser._id !== decoded.id) {
           res.status(403).json({
             message: "Invalid or expired session",
           });
@@ -46,10 +53,10 @@ const verifyTokens = async (
         // First empty the req user object
         req.user = {} as UserSchemaTypes;
 
-        req.user.id = foundUser._id;
-        req.user.username = foundUser.username;
-        req.user.email = foundUser.email;
-        req.user.role = foundUser.role;
+        req.user.id = decoded.id;
+        req.user.username = decoded.username;
+        req.user.email = decoded.email;
+        req.user.role = decoded.role;
         next();
       }
     );

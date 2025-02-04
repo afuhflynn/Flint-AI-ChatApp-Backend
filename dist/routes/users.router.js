@@ -18,11 +18,12 @@ import "../config/passportJs.js";
 import logger from "../utils/loger.js";
 import { checkAuthState } from "../middlewares/verifyAuth.js";
 import verifyTokens from "../middlewares/verifyTokens.js";
+import { refreshTokens } from "../middlewares/refreshToken.js";
 app.use(passport.initialize());
 app.use(passport.session());
 userRouter.post("/sign-up", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield registerUser(req, res);
+        registerUser(req, res);
     }
     catch (error) {
         logger.error(`Error in sign up route: ${error.message}`);
@@ -43,9 +44,9 @@ userRouter.post("/sign-in", passport.authenticate("local", {
 }));
 userRouter.post("/log-out", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield verifyTokens(req, res, next);
-        yield checkAuthState(req, res, next);
-        yield logoutUser(req, res);
+        verifyTokens(req, res, next);
+        checkAuthState(req, res, next);
+        logoutUser(req, res);
     }
     catch (error) {
         logger.error(`Error in log out route: ${error.message}`);
@@ -54,9 +55,9 @@ userRouter.post("/log-out", (req, res, next) => __awaiter(void 0, void 0, void 0
 }));
 userRouter.post("/account-delete-request", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield verifyTokens(req, res, next);
-        yield checkAuthState(req, res, next);
-        yield sendDeleteAccountRequest(req, res);
+        verifyTokens(req, res, next);
+        checkAuthState(req, res, next);
+        sendDeleteAccountRequest(req, res);
     }
     catch (error) {
         logger.error(`Error in account delete request route: ${error.message}`);
@@ -65,9 +66,9 @@ userRouter.post("/account-delete-request", (req, res, next) => __awaiter(void 0,
 }));
 userRouter.delete("/delete-account", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield verifyTokens(req, res, next);
-        yield checkAuthState(req, res, next);
-        yield deleteUserAccount(req, res);
+        verifyTokens(req, res, next);
+        checkAuthState(req, res, next);
+        deleteUserAccount(req, res);
     }
     catch (error) {
         logger.error(`Error in account delete route: ${error.message}`);
@@ -76,20 +77,29 @@ userRouter.delete("/delete-account", (req, res, next) => __awaiter(void 0, void 
 }));
 userRouter.get("/profile", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield verifyTokens(req, res, next);
-        yield checkAuthState(req, res, next);
-        yield getUserProfile(req, res);
+        verifyTokens(req, res, next);
+        checkAuthState(req, res, next);
+        getUserProfile(req, res);
     }
     catch (error) {
         logger.error(`Error in get user profile route: ${error.message}`);
         res.status(500).json({ error: "Internal server error" });
     }
 }));
+userRouter.post("/refresh-token", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        refreshTokens(req, res, next);
+    }
+    catch (error) {
+        logger.error(`Error in refresh token route: ${error.message}`);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}));
 userRouter.put("/update-profile", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield verifyTokens(req, res, next);
-        yield checkAuthState(req, res, next);
-        yield updateUserProfile(req, res);
+        verifyTokens(req, res, next);
+        checkAuthState(req, res, next);
+        updateUserProfile(req, res);
     }
     catch (error) {
         logger.error(`Error in update user profile route: ${error.message}`);
@@ -98,7 +108,7 @@ userRouter.put("/update-profile", (req, res, next) => __awaiter(void 0, void 0, 
 }));
 userRouter.post("/verify-account-code", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield verifyUserAccountWithCode(req, res);
+        verifyUserAccountWithCode(req, res);
     }
     catch (error) {
         logger.error(`Error in verify account with code route: ${error.message}`);
@@ -107,7 +117,7 @@ userRouter.post("/verify-account-code", (req, res) => __awaiter(void 0, void 0, 
 }));
 userRouter.post("/verify-account-token/:token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield verifyUserAccountWithToken(req, res);
+        verifyUserAccountWithToken(req, res);
     }
     catch (error) {
         logger.error(`Error in verify account with token route: ${error.message}`);
@@ -116,7 +126,7 @@ userRouter.post("/verify-account-token/:token", (req, res) => __awaiter(void 0, 
 }));
 userRouter.post("/resend-verification-code", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield resendVerificationCode(req, res);
+        resendVerificationCode(req, res);
     }
     catch (error) {
         logger.error(`Error in resend verification email route: ${error.message}`);
@@ -125,7 +135,7 @@ userRouter.post("/resend-verification-code", (req, res) => __awaiter(void 0, voi
 }));
 userRouter.post("/reset-password-request", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield requestPasswordReset(req, res);
+        requestPasswordReset(req, res);
     }
     catch (error) {
         logger.error(`Error in reset password request route: ${error.message}`);
@@ -134,7 +144,7 @@ userRouter.post("/reset-password-request", (req, res) => __awaiter(void 0, void 
 }));
 userRouter.put("/reset-password/:token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield resetPassword(req, res);
+        resetPassword(req, res);
     }
     catch (error) {
         logger.error(`Error in reset password route: ${error.message}`);

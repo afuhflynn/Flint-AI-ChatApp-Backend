@@ -1,6 +1,7 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "dotenv";
@@ -298,6 +299,81 @@ export const updateUserProfile = async (
     res.status(200).json(updatedUser);
   } catch (error: any | { message: string }) {
     logger.error(`Error updating user profile: ${error.message}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later" });
+  }
+};
+
+// Refresh token handler
+export const refreshHandler = async (
+  req: Request & RequestWithUser,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const sentAccessToken = req.cookies?.token;
+    if (!sentAccessToken) {
+      res.status(401).json({ message: "Login required to continue" });
+    }
+
+    // Find the user by refresh token
+    const foundUser = await User.findOne({ accessToken: sentAccessToken });
+    if (!foundUser) {
+      res.status(403).json({ message: "Invalid access token" });
+    }
+
+    if (foundUser) {
+      // Verify the refresh token
+      jwt.verify(
+        foundUser.refreshToken as string,
+        process.env.REFRESH_TOKEN_SECRET as string,
+        { algorithms: ["HS256"] },
+        async (error: any, decoded: any) => {
+          if (error) {
+            return res
+              .status(403)
+              .json({ message: "Invalid or expired refresh token" });
+          }
+
+          // Check the id compatibility
+          if (foundUser._id !== decoded.id) {
+            res.status(403).json({
+              message: "Invalid or expired session",
+            });
+            return;
+          }
+
+          // Generate a new access token
+          const newAccessToken = jwt.sign(
+            {
+              id: foundUser._id,
+              username: foundUser.username,
+              email: foundUser.email,
+              role: foundUser.role,
+            },
+            process.env.ACCESS_TOKEN_SECRET as string,
+            { algorithm: "HS256", expiresIn: "1h" }
+          );
+
+          // Update the user’s access token and expiration in the database
+          foundUser.accessToken = newAccessToken;
+          foundUser.accessTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+          await foundUser.save();
+
+          // Set the new access token in the cookie
+          res.cookie("token", newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 15 * 60 * 1000,
+          });
+
+          next();
+        }
+      );
+    }
+  } catch (error: any | { message: string }) {
+    logger.error(`Error refreshing cookies (tokens): ${error.message}`);
     return res
       .status(500)
       .json({ message: "Internal server error. Please try again later" });

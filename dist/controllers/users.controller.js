@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "dotenv";
@@ -234,6 +235,62 @@ export const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0,
     }
     catch (error) {
         logger.error(`Error updating user profile: ${error.message}`);
+        return res
+            .status(500)
+            .json({ message: "Internal server error. Please try again later" });
+    }
+});
+// Refresh token handler
+export const refreshHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const sentAccessToken = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.token;
+        if (!sentAccessToken) {
+            res.status(401).json({ message: "Login required to continue" });
+        }
+        // Find the user by refresh token
+        const foundUser = yield User.findOne({ accessToken: sentAccessToken });
+        if (!foundUser) {
+            res.status(403).json({ message: "Invalid access token" });
+        }
+        if (foundUser) {
+            // Verify the refresh token
+            jwt.verify(foundUser.refreshToken, process.env.REFRESH_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, decoded) => __awaiter(void 0, void 0, void 0, function* () {
+                if (error) {
+                    return res
+                        .status(403)
+                        .json({ message: "Invalid or expired refresh token" });
+                }
+                // Check the id compatibility
+                if (foundUser._id !== decoded.id) {
+                    res.status(403).json({
+                        message: "Invalid or expired session",
+                    });
+                    return;
+                }
+                // Generate a new access token
+                const newAccessToken = jwt.sign({
+                    id: foundUser._id,
+                    username: foundUser.username,
+                    email: foundUser.email,
+                    role: foundUser.role,
+                }, process.env.ACCESS_TOKEN_SECRET, { algorithm: "HS256", expiresIn: "1h" });
+                // Update the user’s access token and expiration in the database
+                foundUser.accessToken = newAccessToken;
+                foundUser.accessTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+                yield foundUser.save();
+                // Set the new access token in the cookie
+                res.cookie("token", newAccessToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    maxAge: 15 * 60 * 1000,
+                });
+                next();
+            }));
+        }
+    }
+    catch (error) {
+        logger.error(`Error refreshing cookies (tokens): ${error.message}`);
         return res
             .status(500)
             .json({ message: "Internal server error. Please try again later" });

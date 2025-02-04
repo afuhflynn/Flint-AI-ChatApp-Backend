@@ -85,7 +85,7 @@ app.get("*", (req: Request, res: Response) => {
   logger.error(`404 Error: ${req.originalUrl}`);
 
   if (req.accepts("json")) {
-    res.status(404).json({ success: false, message: "Page not found!" });
+    res.status(404).json({ message: "Page not found!" });
   } else if (req.accepts("text")) {
     res.status(404).send("Page not found!");
   } else {
