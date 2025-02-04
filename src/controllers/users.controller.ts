@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response} from "express";
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -306,9 +306,8 @@ export const updateUserProfile = async (
 
 // Refresh token handler
 export const refreshHandler = async (
-  req: Request & RequestWithUser,
-  res: Response,
-  next: NextFunction
+  req: Request,
+  res: Response
 ) => {
   try {
     const sentAccessToken = req.cookies?.token;
@@ -328,19 +327,11 @@ export const refreshHandler = async (
         foundUser.refreshToken as string,
         process.env.REFRESH_TOKEN_SECRET as string,
         { algorithms: ["HS256"] },
-        async (error: any, decoded: any) => {
+        async (error: any, _: any) => {
           if (error) {
             return res
               .status(403)
               .json({ message: "Invalid or expired refresh token" });
-          }
-
-          // Check the id compatibility
-          if (foundUser._id !== decoded.id) {
-            res.status(403).json({
-              message: "Invalid or expired session",
-            });
-            return;
           }
 
           // Generate a new access token
@@ -363,11 +354,11 @@ export const refreshHandler = async (
           // Set the new access token in the cookie
           res.cookie("token", newAccessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            maxAge: 15 * 60 * 1000,
+            secure: process.env.APP_STATUS === "development" ? false : true,
+            maxAge: Date.now() + 60 * 60 * 1000, // 1 hour
           });
 
-          next();
+          return res.status(202); // Accepted
         }
       );
     }

@@ -1,4 +1,4 @@
-import express, { Router, Request, Response, NextFunction } from "express";
+import express, { Router, Request, Response } from "express";
 import {
   deleteUserAccount,
   getUserProfile,
@@ -111,19 +111,7 @@ userRouter.get(
   }
 );
 
-userRouter.post(
-  "/refresh-token",
-  verifyTokens,
-  checkAuthState,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      refreshTokens(req as Request & RequestWithUser, res, next);
-    } catch (error: any | { message: string }) {
-      logger.error(`Error in account delete route: ${error.message}`);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  }
-);
+userRouter.post("/refresh-token", refreshTokens);
 
 userRouter.put(
   "/update-profile",

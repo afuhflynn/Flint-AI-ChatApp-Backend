@@ -240,7 +240,7 @@ export const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0,
     }
 });
 // Refresh token handler
-export const refreshHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+export const refreshHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
         const sentAccessToken = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.token;
@@ -254,18 +254,11 @@ export const refreshHandler = (req, res, next) => __awaiter(void 0, void 0, void
         }
         if (foundUser) {
             // Verify the refresh token
-            jwt.verify(foundUser.refreshToken, process.env.REFRESH_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, decoded) => __awaiter(void 0, void 0, void 0, function* () {
+            jwt.verify(foundUser.refreshToken, process.env.REFRESH_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => __awaiter(void 0, void 0, void 0, function* () {
                 if (error) {
                     return res
                         .status(403)
                         .json({ message: "Invalid or expired refresh token" });
-                }
-                // Check the id compatibility
-                if (foundUser._id !== decoded.id) {
-                    res.status(403).json({
-                        message: "Invalid or expired session",
-                    });
-                    return;
                 }
                 // Generate a new access token
                 const newAccessToken = jwt.sign({
@@ -281,10 +274,10 @@ export const refreshHandler = (req, res, next) => __awaiter(void 0, void 0, void
                 // Set the new access token in the cookie
                 res.cookie("token", newAccessToken, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    maxAge: 15 * 60 * 1000,
+                    secure: process.env.APP_STATUS === "development" ? false : true,
+                    maxAge: Date.now() + 60 * 60 * 1000, // 1 hour
                 });
-                next();
+                return res.status(202); // Accepted
             }));
         }
     }

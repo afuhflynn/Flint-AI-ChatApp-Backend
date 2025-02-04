@@ -79,15 +79,7 @@ userRouter.get("/profile", verifyTokens, checkAuthState, (req, res) => __awaiter
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.post("/refresh-token", verifyTokens, checkAuthState, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        refreshTokens(req, res, next);
-    }
-    catch (error) {
-        logger.error(`Error in account delete route: ${error.message}`);
-        res.status(500).json({ error: "Internal server error" });
-    }
-}));
+userRouter.post("/refresh-token", refreshTokens);
 userRouter.put("/update-profile", verifyTokens, checkAuthState, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         updateUserProfile(req, res);
