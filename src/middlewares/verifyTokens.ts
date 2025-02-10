@@ -51,7 +51,7 @@ const verifyTokens = (req: Request, res: Response, next: NextFunction) => {
           req.user.username = foundUser.username;
           req.user.email = foundUser.email;
           req.user.role = foundUser.role;
-          next();
+          return next();
         }
       );
     } catch (error: any) {

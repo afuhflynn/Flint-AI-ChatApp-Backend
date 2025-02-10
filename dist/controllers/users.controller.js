@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
 import { v2 as cloudinary } from "cloudinary";
 import { config } from "dotenv";
@@ -234,55 +233,6 @@ export const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0,
     }
     catch (error) {
         logger.error(`Error updating user profile: ${error.message}`);
-        return res
-            .status(500)
-            .json({ message: "Internal server error. Please try again later" });
-    }
-});
-// Refresh token handler
-export const refreshHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    try {
-        const sentAccessToken = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.token;
-        if (!sentAccessToken) {
-            res.status(401).json({ message: "Login required to continue" });
-        }
-        // Find the user by refresh token
-        const foundUser = yield User.findOne({ accessToken: sentAccessToken, refreshTokenExpires: { $gt: Date.now() } });
-        if (!foundUser) {
-            res.status(403).json({ message: "Invalid refresh token" });
-        }
-        if (foundUser) {
-            // Verify the refresh token
-            yield jwt.verify(foundUser.refreshToken, process.env.REFRESH_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => __awaiter(void 0, void 0, void 0, function* () {
-                if (error) {
-                    return res
-                        .status(403)
-                        .json({ message: "Invalid or expired refresh token" });
-                }
-                // Generate a new access token
-                const newAccessToken = yield jwt.sign({
-                    id: foundUser._id,
-                    username: foundUser.username,
-                    email: foundUser.email,
-                    role: foundUser.role,
-                }, process.env.ACCESS_TOKEN_SECRET, { algorithm: "HS256", expiresIn: "1h" });
-                // Update the user’s access token and expiration in the database
-                foundUser.accessToken = newAccessToken;
-                foundUser.accessTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-                yield foundUser.save();
-                // Set the new access token in the cookie
-                res.cookie("token", newAccessToken, {
-                    httpOnly: true,
-                    secure: process.env.APP_STATUS === "development" ? false : true,
-                    maxAge: Date.now() + 60 * 60 * 1000, // 1 hour
-                });
-                return res.status(202); // Accepted
-            }));
-        }
-    }
-    catch (error) {
-        logger.error(`Error refreshing cookies (tokens): ${error.message}`);
         return res
             .status(500)
             .json({ message: "Internal server error. Please try again later" });

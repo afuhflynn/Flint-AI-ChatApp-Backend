@@ -31,7 +31,7 @@ export const checkAuthState = (req, res, next) => __awaiter(void 0, void 0, void
             req.user.username = user.username;
             req.user.email = user.email;
             req.user.role = user.role;
-            next();
+            return next();
         }
         catch (error) {
             logger.error(`Error Checking user auth state: ${error.message}`);

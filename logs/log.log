@@ -150,3 +150,71 @@
 
 [2025-02-04 21:42:42] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-02.nuci9.mongodb.net.
 
+[2025-02-05 07:29:14] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-01.nuci9.mongodb.net.
+
+[2025-02-05 07:36:01] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-02.nuci9.mongodb.net.
+
+[2025-02-05 08:05:39] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-01.nuci9.mongodb.net.
+
+[2025-02-05 08:19:28] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-00.nuci9.mongodb.net.
+
+[2025-02-05 08:21:38] - [ERROR] - Email sent successfully! to flyinnsafuh@gmail.com
+
+[2025-02-05 08:36:16] - [ERROR] - Error verifying user token: read ECONNRESET
+
+[2025-02-05 08:36:36] - [ERROR] - Error verifying user token: read ECONNRESET
+
+[2025-02-05 08:36:50] - [ERROR] - Error refreshing cookies (tokens): getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:37:06] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:37:08] - [ERROR] - Error refreshing cookies (tokens): getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:37:26] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:37:46] - [ERROR] - Error refreshing cookies (tokens): getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:37:59] - [ERROR] - Error refreshing cookies (tokens): getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:44:23] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:44:44] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:44:53] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:45:01] - [ERROR] - Error refreshing cookies (tokens): getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:45:01] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:45:23] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:45:23] - [ERROR] - Error refreshing cookies (tokens): getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:45:24] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:45:32] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:45:50] - [ERROR] - Error refreshing cookies (tokens): getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:45:59] - [ERROR] - Error refreshing cookies (tokens): getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 08:46:02] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-02-05 09:19:02] - [ERROR] - Error connecting to db: querySrv UNKNOWN _mongodb._tcp.flint-ai-chatbot.nuci9.mongodb.net
+
+[2025-02-05 09:28:01] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-02.nuci9.mongodb.net.
+
+[2025-02-05 09:31:11] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-02.nuci9.mongodb.net.
+
+[2025-02-05 09:32:53] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-01.nuci9.mongodb.net.
+
+[2025-02-05 09:37:43] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-01.nuci9.mongodb.net.
+
+[2025-02-05 09:44:26] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-00.nuci9.mongodb.net.
+
+[2025-02-05 09:57:37] - [ERROR] - Email sent successfully! to flyinnsafuh@gmail.com
+
+[2025-02-07 09:11:46] - [ERROR] - Error connecting to db: querySrv UNKNOWN _mongodb._tcp.flint-ai-chatbot.nuci9.mongodb.net
+
+[2025-02-08 08:21:51] - [ERROR] - Error connecting to db: querySrv ENOTFOUND _mongodb._tcp.flint-ai-chatbot.nuci9.mongodb.net
+

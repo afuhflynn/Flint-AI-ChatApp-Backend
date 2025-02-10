@@ -1,4 +1,4 @@
-# Welcome to the Flint-AI-ChatApp Backend
+# Flint-AI-ChatApp-Backend
 
 <div align="center">
   <img src="./public/flintai-logo.png" alt="Flint ai logo" width="200"/>
@@ -11,6 +11,7 @@ This is the backend service for the Flint-AI-ChatApp. It handles message process
 Flint AI ChatApp is an advanced chat application that leverages artificial intelligence to provide seamless and intelligent communication. This project is designed to demonstrate the capabilities of AI in enhancing user interactions.
 
 ## Prerequisites
+
 - node.js
 - npm or deno
 - TypeScript
@@ -19,12 +20,13 @@ Flint AI ChatApp is an advanced chat application that leverages artificial intel
 - A cloudinary account for (cloudinary-cloud-name, cloudinary-api-key, cloudinary-api-secret)
 
 ### Basic understading of:
+
 - Typescript
 - Nodejs with Expressjs
 
 ## Table of Contents
 
-- [Welcome to the Flint AI ChatApp frontend](#welcome-to-the-flint-ai-chatapp-frontend)
+- [Welcome to the Flint-AI-ChatApp Backend](#flint-ai-chatapp-backend)
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Table of contents](#table-of-contents)
@@ -33,27 +35,32 @@ Flint AI ChatApp is an advanced chat application that leverages artificial intel
 - [Running the Server](#running-the-server)
 - [API Endpoints](#api-endpoints)
 - [User Authentication and Verification](#user-authentication-and-verification)
-    - [Planned Features](#planned-features)
-    - [Future API Endpoints](#future-api-endpoints)
+  - [Planned Features](#planned-features)
+  - [Future API Endpoints](#future-api-endpoints)
 - [Authors](#authors)
 - [License](#license)
 - [Contributing](#contributing)
 - [Contact](#contact)
 
 ## Installation
+
 1. Clone the repository:
+
     ```bash
     git clone https://github.com/AfuhFlyine/Flint-AI-ChatApp-Backend.git
     ```
+
 2. Install the dependencies:
+
     ```bash
     npm install or deno install or yarn install
     ```
 
 ## Configuration
-1. Create a `.env` file in the backend directory and add the following environment variables:
-    ```env
 
+1. Create a `.env` file in the backend directory and add the following environment variables:
+
+    ```env
     MONGODB_URL = mongodb-contect-string
 
     GOOGLE_GEMINI_API_KEY = google-gemini-api-key
@@ -83,13 +90,17 @@ Flint AI ChatApp is an advanced chat application that leverages artificial intel
     ```
 
 ## Running the Server
+
 Start the server with the following command:
+
 ```bash
 npm start or deno task start (in dev mode use: npm run dev or deno task dev)
 ```
+
 The server will be running on `<http:localhost:PORT-interminal>.
 
 ## API Endpoints
+
 - `POST /` - Ping API
 - `POST /assist/api/ai` - Ask AI
 
@@ -249,9 +260,10 @@ Stay tuned for updates on these features!
 
 This project is proprietary and subject to the terms described in the [LICENSE TEXT FILE](./LICENSE.txt) or [LICENSE MARKDOWN FILE](./LICENSE.md) file. Unauthorized copying, distribution, or modification of this software is strictly prohibited.
 
-
 ## Contributing
+
 Contributions are welcome! Please open an issue or submit a pull request.
 
 ## Contact
-For any inquiries, please contact flyinnsafuh@gmail.com.
+
+For any inquiries, please contact <flyinnsafuh@gmail.com>.

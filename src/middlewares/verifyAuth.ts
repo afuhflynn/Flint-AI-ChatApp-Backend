@@ -35,7 +35,7 @@ export const checkAuthState = async (
       req.user.username = user.username;
       req.user.email = user.email;
       req.user.role = user.role;
-      next();
+      return next();
     } catch (error: any | { message: string }) {
       logger.error(`Error Checking user auth state: ${error.message}`);
       return res
