@@ -30,7 +30,7 @@ config();
 connectDB();
 // Create a new express application instance
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 // Express middleware setup
 app.use(cookieParser());
 app.use(express.json());

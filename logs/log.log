@@ -218,3 +218,11 @@
 
 [2025-02-08 08:21:51] - [ERROR] - Error connecting to db: querySrv ENOTFOUND _mongodb._tcp.flint-ai-chatbot.nuci9.mongodb.net
 
+[2025-02-26 13:47:07] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-01.nuci9.mongodb.net.
+
+[2025-02-26 13:58:27] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-00.nuci9.mongodb.net.
+
+[2025-02-26 14:27:34] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-02.nuci9.mongodb.net.
+
+[2025-02-26 14:32:06] - [ERROR] - Email sent successfully! to flyinnsafuh@gmail.com
+
