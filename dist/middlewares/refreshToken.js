@@ -31,14 +31,14 @@ export const refreshTokens = (req, res) => {
             }
             if (foundUser) {
                 // Verify the refresh token
-                yield jwt.verify(foundUser.refreshToken, process.env.REFRESH_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => __awaiter(void 0, void 0, void 0, function* () {
+                jwt.verify(foundUser.refreshToken, process.env.REFRESH_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => __awaiter(void 0, void 0, void 0, function* () {
                     if (error) {
                         return res
                             .status(403)
                             .json({ message: "Invalid or expired refresh token" });
                     }
                     // Generate a new access token
-                    const newAccessToken = yield jwt.sign({
+                    const newAccessToken = jwt.sign({
                         id: foundUser._id,
                         username: foundUser.username,
                         email: foundUser.email,

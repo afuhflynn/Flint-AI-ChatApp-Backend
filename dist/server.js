@@ -48,7 +48,7 @@ app.get("/api/auth/users/github", passport.authenticate("github", {
     scope: ["user:email", "user:password"],
     session: false, // Disable session
     failureRedirect: `${process.env.CLIENT_URL}/auth/login-in`,
-    successRedirect: `${process.env.CLIENT_URL}/chat-bot/chats/new-chat`,
+    successRedirect: `${process.env.CLIENT_URL}/c/new-chat`,
 }));
 // **GitHub OAuth Callback Route**
 app.get("/auth/github/callback", passport.authenticate("github", {

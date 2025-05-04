@@ -25,7 +25,6 @@ import { RequestWithUser } from "../TYPES.js";
 import logger from "../utils/loger.js";
 import { checkAuthState } from "../middlewares/verifyAuth.js";
 import verifyTokens from "../middlewares/verifyTokens.js";
-import { refreshTokens } from "../middlewares/refreshToken.js";
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -110,8 +109,6 @@ userRouter.get(
     }
   }
 );
-
-userRouter.post("/refresh-token", refreshTokens);
 
 userRouter.put(
   "/update-profile",

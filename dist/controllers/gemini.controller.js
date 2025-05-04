@@ -11,11 +11,12 @@ import { genAIEndPoint, genAITitleEndPoint, } from "../config/geminiModelSetup.j
 import crypto from "node:crypto";
 import User from "../models/user.model.js";
 import Chat from "../models/chats.model.js";
+// import {v4 as uuidv4} from "uui"
 import logger from "../utils/loger.js";
 // General Variable to store ai response to ensure proper realtime response on the frontend
 let AI_RESPONSE = "";
 // NOTE: Delete old chats after 100 days
-// Handle user chats
+// Change this
 // NOTE: Protected handlers
 // Saves a new prompt to an existing conversation or creates a new one
 export const handleUserChats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {

@@ -7,6 +7,7 @@ import crypto from "node:crypto";
 import User from "../models/user.model.js";
 import Chat from "../models/chats.model.js";
 import { RequestWithUser } from "../TYPES.js";
+// import {v4 as uuidv4} from "uui"
 import logger from "../utils/loger.js";
 
 // General Variable to store ai response to ensure proper realtime response on the frontend
@@ -14,7 +15,7 @@ let AI_RESPONSE: string = "";
 
 // NOTE: Delete old chats after 100 days
 
-// Handle user chats
+// Change this
 // NOTE: Protected handlers
 // Saves a new prompt to an existing conversation or creates a new one
 export const handleUserChats = async (

@@ -12,6 +12,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 import User from "../models/user.model.js";
 import logger from "../utils/loger.js";
+import { refreshTokens } from "./refreshToken.js";
 const verifyTokens = (req, res, next) => {
     const verify = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
@@ -28,16 +29,19 @@ const verifyTokens = (req, res, next) => {
                 accessTokenExpires: { $gt: Date.now() },
             });
             if (!foundUser) {
-                res.status(403).json({
+                res.status(401).json({
                     message: "Invalid or expired token",
                 });
                 return;
             }
-            yield jwt.verify(sentCookie, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => {
+            jwt.verify(sentCookie, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] }, (error, _) => {
                 if (error) {
-                    res.status(403).json({
+                    res.status(401).json({
                         message: "Invalid or expired session",
                     });
+                    // Refresh user token if refresh token has not expired and wait for frontend to make a request with new token
+                    refreshTokens(req, res);
+                    logger.info(`Refresh user ${req.user.name}, ${req.user.email} access token using refresh token`);
                     return;
                 }
                 // First empty the req user object

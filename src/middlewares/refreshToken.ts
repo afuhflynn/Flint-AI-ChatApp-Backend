@@ -25,7 +25,7 @@ export const refreshTokens = (req: Request, res: Response) => {
 
       if (foundUser) {
         // Verify the refresh token
-        await jwt.verify(
+        jwt.verify(
           foundUser.refreshToken as string,
           process.env.REFRESH_TOKEN_SECRET as string,
           { algorithms: ["HS256"] },
@@ -37,7 +37,7 @@ export const refreshTokens = (req: Request, res: Response) => {
             }
 
             // Generate a new access token
-            const newAccessToken = await jwt.sign(
+            const newAccessToken = jwt.sign(
               {
                 id: foundUser._id,
                 username: foundUser.username,

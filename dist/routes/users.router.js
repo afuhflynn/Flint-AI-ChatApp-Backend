@@ -18,7 +18,6 @@ import "../config/passportJs.js";
 import logger from "../utils/loger.js";
 import { checkAuthState } from "../middlewares/verifyAuth.js";
 import verifyTokens from "../middlewares/verifyTokens.js";
-import { refreshTokens } from "../middlewares/refreshToken.js";
 app.use(passport.initialize());
 app.use(passport.session());
 userRouter.post("/sign-up", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -79,7 +78,6 @@ userRouter.get("/profile", verifyTokens, checkAuthState, (req, res) => __awaiter
         res.status(500).json({ error: "Internal server error" });
     }
 }));
-userRouter.post("/refresh-token", refreshTokens);
 userRouter.put("/update-profile", verifyTokens, checkAuthState, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         updateUserProfile(req, res);

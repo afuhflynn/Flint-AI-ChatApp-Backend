@@ -5,6 +5,7 @@ import User from "../models/user.model.js";
 import { Response, Request, NextFunction } from "express";
 import { RequestWithUser, UserSchemaTypes } from "../TYPES.js";
 import logger from "../utils/loger.js";
+import { refreshTokens } from "./refreshToken.js";
 
 const verifyTokens = (req: Request, res: Response, next: NextFunction) => {
   const verify = async (
@@ -27,21 +28,27 @@ const verifyTokens = (req: Request, res: Response, next: NextFunction) => {
       });
 
       if (!foundUser) {
-        res.status(403).json({
+        res.status(401).json({
           message: "Invalid or expired token",
         });
         return;
       }
 
-      await jwt.verify(
+      jwt.verify(
         sentCookie,
         process.env.ACCESS_TOKEN_SECRET as string,
         { algorithms: ["HS256"] },
         (error, _: any) => {
           if (error) {
-            res.status(403).json({
+            res.status(401).json({
               message: "Invalid or expired session",
             });
+
+            // Refresh user token if refresh token has not expired and wait for frontend to make a request with new token
+            refreshTokens(req, res);
+            logger.info(
+              `Refresh user ${req.user.name}, ${req.user.email} access token using refresh token`
+            );
             return;
           }
           // First empty the req user object

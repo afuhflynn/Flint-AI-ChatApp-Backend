@@ -1,3 +1,20 @@
 .env
 node_modules
-build
+
+dist
+.DS_Store
+Thumbs.db
+*.log
+/coverage
+/tmp
+/out
+/dist
+/cache
+.eslintcache
+.nyc_output
+
+
+/src/dist
+
+# My personal dev todo
+TODO.todo

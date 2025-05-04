@@ -226,3 +226,125 @@
 
 [2025-02-26 14:32:06] - [ERROR] - Email sent successfully! to flyinnsafuh@gmail.com
 
+[2025-04-18 13:34:12] - [ERROR] - Error connecting to db: querySrv UNKNOWN _mongodb._tcp.flint-ai-chatbot.nuci9.mongodb.net
+
+[2025-04-18 13:37:18] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-02.nuci9.mongodb.net.
+
+[2025-04-18 13:38:20] - [ERROR] - Email sent successfully! to flyinnsafuh@gmail.com
+
+[2025-04-18 13:56:06] - [ERROR] - Error verifying user token: connection <monitor> to 159.41.88.80:27017 closed
+
+[2025-04-18 13:56:11] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30709ms (connectTimeoutMS: 30000)
+
+[2025-04-18 13:56:38] - [ERROR] - Error refreshing cookies (tokens): Socket 'secureConnect' timed out after 30709ms (connectTimeoutMS: 30000)
+
+[2025-04-18 13:56:42] - [ERROR] - Error refreshing cookies (tokens): Socket 'secureConnect' timed out after 30709ms (connectTimeoutMS: 30000)
+
+[2025-04-18 14:04:50] - [ERROR] - Error refreshing cookies (tokens): getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-04-18 14:04:50] - [ERROR] - Error refreshing cookies (tokens): getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-04-18 14:16:03] - [ERROR] - Error login in user with github: connect ECONNREFUSED 159.41.95.34:27017
+
+[2025-04-18 14:16:40] - [ERROR] - Error verifying user token: connection <monitor> to 159.41.95.1:27017 timed out
+
+[2025-04-18 14:17:00] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30005ms (connectTimeoutMS: 30000)
+
+[2025-04-18 14:17:10] - [ERROR] - Error refreshing cookies (tokens): Socket 'secureConnect' timed out after 30005ms (connectTimeoutMS: 30000)
+
+[2025-04-18 14:17:30] - [ERROR] - Error refreshing cookies (tokens): Socket 'secureConnect' timed out after 30005ms (connectTimeoutMS: 30000)
+
+[2025-04-18 14:21:41] - [ERROR] - Error verifying user token: connection <monitor> to 159.41.95.1:27017 timed out
+
+[2025-04-18 14:21:42] - [ERROR] - Error verifying user token: connection <monitor> to 159.41.95.1:27017 timed out
+
+[2025-04-18 14:22:11] - [ERROR] - Error refreshing cookies (tokens): Socket 'secureConnect' timed out after 30012ms (connectTimeoutMS: 30000)
+
+[2025-04-18 14:22:12] - [ERROR] - Error refreshing cookies (tokens): Socket 'secureConnect' timed out after 30012ms (connectTimeoutMS: 30000)
+
+[2025-04-18 14:24:28] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30009ms (connectTimeoutMS: 30000)
+
+[2025-04-18 14:24:48] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30014ms (connectTimeoutMS: 30000)
+
+[2025-04-18 14:25:12] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30006ms (connectTimeoutMS: 30000)
+
+[2025-04-18 14:25:28] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30006ms (connectTimeoutMS: 30000)
+
+[2025-04-18 14:40:59] - [ERROR] - Error connecting to db: Server selection timed out after 30000 ms
+
+[2025-04-18 14:45:44] - [ERROR] - Error connecting to db: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/
+
+[2025-04-18 14:48:25] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-01.nuci9.mongodb.net.
+
+[2025-04-18 14:52:04] - [ERROR] - Email sent successfully! to flyinnsafuh@gmail.com
+
+[2025-04-18 14:54:28] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-02.nuci9.mongodb.net.
+
+[2025-04-18 14:55:35] - [ERROR] - Email sent successfully! to flyinnsafuh@gmail.com
+
+[2025-04-18 14:57:40] - [ERROR] - Error fetching user profile: connection <monitor> to 159.41.95.1:27017 timed out
+
+[2025-04-18 15:07:08] - [ERROR] - Error fetching user profile: connection <monitor> to 159.41.95.1:27017 timed out
+
+[2025-04-18 15:07:41] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-04-18 15:26:55] - [ERROR] - Email sent successfully! to flyinnsafuh@gmail.com
+
+[2025-04-18 15:26:59] - [ERROR] - Email sent successfully! to flyinnsafuh@gmail.com
+
+[2025-04-18 15:39:33] - [ERROR] - Error connecting to db: querySrv UNKNOWN _mongodb._tcp.flint-ai-chatbot.nuci9.mongodb.net
+
+[2025-04-18 15:44:52] - [ERROR] - Error connecting to db: Server selection timed out after 30000 ms
+
+[2025-04-18 15:48:27] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-02.nuci9.mongodb.net.
+
+[2025-04-18 16:33:17] - [ERROR] - Email sent successfully! to flyinnsafuh@gmail.com
+
+[2025-04-18 17:00:09] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-01.nuci9.mongodb.net.
+
+[2025-04-18 17:04:54] - [ERROR] - Error verifying user token: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-00.nuci9.mongodb.net
+
+[2025-04-18 17:09:14] - [ERROR] - Error signing up user: Socket 'secureConnect' timed out after 30010ms (connectTimeoutMS: 30000)
+
+[2025-04-18 17:09:24] - [ERROR] - Error verifying user token: connection <monitor> to 159.41.95.1:27017 timed out
+
+[2025-04-18 17:11:44] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30021ms (connectTimeoutMS: 30000)
+
+[2025-04-18 17:12:06] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30008ms (connectTimeoutMS: 30000)
+
+[2025-04-18 17:12:16] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30008ms (connectTimeoutMS: 30000)
+
+[2025-04-18 17:12:46] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30002ms (connectTimeoutMS: 30000)
+
+[2025-04-18 17:12:51] - [ERROR] - Error signing up user: Socket 'secureConnect' timed out after 30002ms (connectTimeoutMS: 30000)
+
+[2025-04-18 17:13:54] - [ERROR] - Error signing up user: connect ECONNREFUSED 159.41.95.1:27017
+
+[2025-04-18 17:17:10] - [ERROR] - Error signing up user: Socket 'secureConnect' timed out after 30045ms (connectTimeoutMS: 30000)
+
+[2025-04-18 20:58:46] - [ERROR] - Error connecting to db: querySrv UNKNOWN _mongodb._tcp.flint-ai-chatbot.nuci9.mongodb.net
+
+[2025-04-18 21:02:24] - [ERROR] - Error connecting to db: querySrv UNKNOWN _mongodb._tcp.flint-ai-chatbot.nuci9.mongodb.net
+
+[2025-04-18 21:16:14] - [ERROR] - Error connecting to db: getaddrinfo ENOTFOUND flint-ai-chatbot-shard-00-02.nuci9.mongodb.net.
+
+[2025-04-18 21:19:31] - [ERROR] - Error connecting to db: querySrv UNKNOWN _mongodb._tcp.flint-ai-chatbot.nuci9.mongodb.net
+
+[2025-04-18 21:22:23] - [ERROR] - Error connecting to db: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/
+
+[2025-04-18 21:34:17] - [ERROR] - Error connecting to db: connect ECONNREFUSED 159.41.95.34:27017
+
+[2025-04-18 22:03:11] - [ERROR] - Error connecting to db: querySrv UNKNOWN _mongodb._tcp.flint-ai-chatbot.nuci9.mongodb.net
+
+[2025-04-18 22:07:27] - [ERROR] - MongoDB Connected: flint-ai-chatbot-shard-00-00.nuci9.mongodb.net.
+
+[2025-04-18 22:13:10] - [ERROR] - Email sent successfully! to flyinnsafuh@gmail.com
+
+[2025-04-18 23:05:29] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30034ms (connectTimeoutMS: 30000)
+
+[2025-04-18 23:06:32] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30013ms (connectTimeoutMS: 30000)
+
+[2025-04-18 23:07:27] - [ERROR] - Error verifying user token: read ECONNRESET
+
+[2025-04-18 23:07:59] - [ERROR] - Error verifying user token: Socket 'secureConnect' timed out after 30011ms (connectTimeoutMS: 30000)
+

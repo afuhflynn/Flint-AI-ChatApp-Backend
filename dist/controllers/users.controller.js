@@ -430,6 +430,7 @@ export const githubLogin = (req, res) => __awaiter(void 0, void 0, void 0, funct
             foundUser.refreshToken = refreshToken;
             foundUser.refreshTokenExpires = refreshTokenExpiresAt;
             yield foundUser.save();
+            logger.profile(`User ${foundUser.username}, ${foundUser.email}, logged in with github:`);
             // Set JWT as an httpOnly cookie
             res.cookie("token", accessToken, {
                 httpOnly: true, // Makes the cookie inaccessible via JavaScript
@@ -442,7 +443,7 @@ export const githubLogin = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 "X-Category": "Welcome Email",
             });
             // Redirect or send response
-            return res.redirect(`${process.env.CLIENT_URL}/chat-bot/chats/new-chat`);
+            return res.redirect(`${process.env.CLIENT_URL}/c/new-chat`);
         }
         else {
             return res.status(404).json({ message: "User not found" });
